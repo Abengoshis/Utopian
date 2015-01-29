@@ -10,7 +10,7 @@ public class scrNodeMaster : MonoBehaviour
 
 	#region Pool Variables
 
-	const int TOTAL_NODES = 80;
+	const int TOTAL_NODES = 100;
 	const int TOTAL_CUBES = 16000;
 
 	// These static pools will be loaded when the player plays their first game.
@@ -201,16 +201,16 @@ public class scrNodeMaster : MonoBehaviour
 
 				// Check the message for certain criteria to determine whether or not to make an infected or uninfected node.
 				string summary = message.summary != null ? message.summary.ToUpper() : "";
-				if (summary == "" || !(summary.Contains("REVERSION") || summary.Contains("VANDAL") || summary.Contains("SPAM")))
+				if (summary == "" || !(summary.Contains("UNDID") || summary.Contains("REVERSION") || summary.Contains("VANDAL") || summary.Contains("SPAM")))
 				{
 					// If the user is not a bot, create the node.  An edit by a bot that is not a vandalism reversion is unlikely to contain any decent information.
-					if (!message.is_bot)
+					if (!message.is_bot && !message.is_anon)
 						StartCoroutine(Create (message, false));
 				}
 				else
 				{
 					// Create an infected node.
-					StartCoroutine(Create (message, false));
+					StartCoroutine(Create (message, true));
 				}
 			}
 		}
@@ -236,7 +236,8 @@ public class scrNodeMaster : MonoBehaviour
 		{
 			Debug.Log("There are no inactive nodes left to create a node for \"" +  message.page_title + "\".");
 			creating = false;
-			yield break;
+			if (!infected)
+				yield break;
 		}
 
 		// Don't create a node if there are no cubes available.
@@ -244,7 +245,8 @@ public class scrNodeMaster : MonoBehaviour
 		{
 			Debug.Log("There are no inactive cubes left to create a node for \"" +  message.page_title + "\".");
 			creating = false;
-			yield break;
+			if (!infected)
+				yield break;
 		}
 
 		// Set the size of the core based on the change_size of the message.
@@ -258,10 +260,39 @@ public class scrNodeMaster : MonoBehaviour
 		{
 			Debug.Log ("There are not enough inactive cubes (" + inactiveCubeCount + "/" + numCubes + ") in the pool to create a node for \"" + message.page_title + "\".");
 			creating = false;
-			yield break;
+			if (!infected)
+				yield break;
 		}
 
-		Debug.Log ("Creating node.");
+		// If not creating but got this far, node is infected and must replace an existing one,
+		if (creating == false)
+		{
+			creating = true;
+
+			// Loop through the active nodes until one is found that is completely out of the player's view.
+			LinkedListNode<GameObject> n = nodePool.Last;
+			for (int i = 0; i < TOTAL_NODES - inactiveNodeCount; ++i)
+			{
+				Vector2 position = n.Value.transform.position;
+				Vector2 topLeft = Camera.main.ScreenToWorldPoint(Vector2.zero);
+				Vector2 bottomRight = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
+
+				// Find out if the node is out of view.
+				if (position.x + CELL_SIZE * 0.5f < topLeft.x || position.x - CELL_SIZE * 0.5f > bottomRight.x ||
+				    position.y + CELL_SIZE * 0.5f < topLeft.y || position.y - CELL_SIZE * 0.5f > bottomRight.y)
+				{
+					// Convert the node.
+					scrNode nScript = n.Value.GetComponent<scrNode>();
+					nScript.ConvertToInfected(message);
+					break;
+				}
+
+				// Move abck one node.
+				n = n.Previous;
+			}
+
+			yield break;
+		}
 
 		// All checks have passed - a node can be made.  Get the first inactive node in the node pool.
 		LinkedListNode<GameObject> node = nodePool.First;
@@ -325,7 +356,7 @@ public class scrNodeMaster : MonoBehaviour
 	public void CreateLinks(LinkedListNode<GameObject> node)
 	{
 		scrNode nodeScript = node.Value.GetComponent<scrNode>();
-		Bounds nodeBounds = new Bounds(node.Value.transform.position, new Vector3(CELL_SIZE * 2, CELL_SIZE * 2, CELL_SIZE * 2));	// Instead, could look for nodes at the adjacent positions of positions array.
+		Bounds nodeBounds = new Bounds(node.Value.transform.position, new Vector3(CELL_SIZE * 4, CELL_SIZE * 4, CELL_SIZE * 4));	// Instead, could look for nodes at the adjacent positions of positions array.
 		LinkedList<GameObject>.Enumerator activeNode = nodePool.GetEnumerator();
 		for (int i = 0; i < inactiveNodeCount; ++i)
 			activeNode.MoveNext();

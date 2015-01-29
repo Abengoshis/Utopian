@@ -29,7 +29,6 @@ public class scrNode : MonoBehaviour
 				// Set the position with the i, j coordinates.
 				positions[cube] = new Vector3(x, y) - (Vector3)Vector2.one * (shell - 1) * 0.5f;
 
-				Debug.Log (positions[cube]);
 
 				// Push the position out from the radius to give each cube separation from its neighbours, and to round the node.
 				positions[cube] += positions[cube] * 0.25f + positions[cube].normalized * core * 0.25f;
@@ -48,8 +47,8 @@ public class scrNode : MonoBehaviour
 	
 	public const int CORE_SIZE_MAX = 4;
 	public const float PULSE_DELAY_MAX = 10.0f;
-	public const int LINKS_MAX = 8;	// Number of links possible (also the number of 2d positions in a grid around one position.
-	public const int LINK_VERTICES = 16;
+	public const int LINKS_MAX = 24;	// Number of links possible (also the number of 2d positions in a grid around one position.
+	public const int LINK_VERTICES = 8;
 	const int LOOPS_PER_FRAME = 50;	// Number of loops allowed per frame of a coroutine before yielding.
 	const string DELETED_TAG = "  <td class=\"diff-deletedline\"><div>";
 	const string ADDED_TAG =   "  <td class=\"diff-addedline\"><div>";
@@ -158,11 +157,25 @@ public class scrNode : MonoBehaviour
 		++cubePositionIndex;
 	}
 
+	public void ConvertToInfected(Message message)
+	{
+		Data = message;
+
+		// Infect all cubes immediately.
+		infectedCubeCount = Cubes.Length;
+		foreach (LinkedListNode<GameObject> cube in Cubes)
+		{
+			cube.Value.GetComponent<scrCube>().InfectImmediate();
+		}
+
+		Infect (0);
+	}
+
 	public void Infect(int count)
 	{
 		Infected = true;
 
-		if (infectedCubeCount + count > Cubes.Length)
+		if (infectedCubeCount + count >= Cubes.Length)
 		{
 			count -= infectedCubeCount + count - Cubes.Length;
 			FullyInfected = true;
@@ -176,9 +189,12 @@ public class scrNode : MonoBehaviour
 			scrNodeMaster.Instance.CreateLinks(Node);
 		}
 
-		for (int i = infectedCubeCount; i < infectedCubeCount + count; ++i)
+		if (infectedCubeCount != Cubes.Length)
 		{
-			Cubes[i].Value.GetComponent<scrCube>().Infect();
+			for (int i = infectedCubeCount; i < infectedCubeCount + count; ++i)
+			{
+				Cubes[i].Value.GetComponent<scrCube>().Infect();
+			}
 		}
 
 		infectedCubeCount += count;
@@ -188,7 +204,12 @@ public class scrNode : MonoBehaviour
 	{
 		for (int i = 0; i < CurrentLinks; ++i)
 		{
-			linkedNodes[i].GetComponent<scrNode>().Infect(Mathf.CeilToInt(infectedCubeCount * 0.1f));
+			// Get the chess distance to the nodes.
+			int chess = Mathf.Max ((int)Mathf.Abs ((linkedNodes[i].transform.position.x - transform.position.x) / scrNodeMaster.CELL_SIZE),
+			                       (int)Mathf.Abs (linkedNodes[i].transform.position.y - transform.position.y) / scrNodeMaster.CELL_SIZE);
+
+			linkedNodes[i].GetComponent<scrNode>().Infect(Mathf.CeilToInt((infectedCubeCount * 0.1f) / chess));
+			links[i].SetColors(scrNodeMaster.ColCoreInfected, Color.Lerp(scrNodeMaster.ColCoreUninfected, scrNodeMaster.ColCoreInfected, linkedNodes[i].GetComponent<scrNode>().GetInfectionAmount()));
 		}
 	}
 
@@ -202,7 +223,7 @@ public class scrNode : MonoBehaviour
 		
 		// Set the control point half way between the two points then pushed in a random direction perpendicular to the connecting line.
 		float curve = 30.0f;
-		Vector3 control = Vector3.Lerp (transform.position, node.transform.position, 0.5f) + curve * Vector3.Cross (node.transform.position - transform.position, Random.rotationUniform.eulerAngles).normalized;
+		Vector3 control = Vector3.Lerp (transform.position, node.transform.position, 0.5f) + curve * Vector3.back;
 		
 		for (int i = 0; i < LINK_VERTICES; ++i)
 		{
@@ -495,7 +516,7 @@ public class scrNode : MonoBehaviour
 						}
 						
 						links[i].SetColors(Color.Lerp (Color.clear, scrNodeMaster.ColCoreInfected, linkExpandTimers[i] / halfLinkExpandDuration),
-						                   Color.Lerp (Color.clear, scrNodeMaster.ColCoreUninfected, (linkExpandTimers[i] - halfLinkExpandDuration) / halfLinkExpandDuration));
+						                   Color.Lerp (Color.clear, scrNodeMaster.ColCoreInfected, (linkExpandTimers[i] - halfLinkExpandDuration) / halfLinkExpandDuration));
 					}
 				}
 
