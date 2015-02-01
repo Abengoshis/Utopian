@@ -11,7 +11,7 @@ public class scrNodeMaster : MonoBehaviour
 	#region Pool Variables
 
 	const int TOTAL_NODES = 100;
-	const int TOTAL_CUBES = 16000;
+	const int TOTAL_CUBES = 10000;
 
 	// These static pools will be loaded when the player plays their first game.
 	static LinkedList<GameObject> nodePool;
@@ -40,8 +40,8 @@ public class scrNodeMaster : MonoBehaviour
 	public Material MatCoreUninfected, MatCoreInfected;
 	public Material MatLink;
 
-	public static Color[] ColCubeUninfected { get; private set; }
-	public static Color[] ColCubeInfected { get; private set; }
+	public static Color ColCubeUninfected { get; private set; }
+	public static Color ColCubeInfected { get; private set; }
 	public static Color ColCoreUninfected { get; private set; }
 	public static Color ColCoreInfected { get; private set; }
 
@@ -174,12 +174,8 @@ public class scrNodeMaster : MonoBehaviour
 		ChildGrid.renderer.material.SetInt("_GridSize", GRID_SIZE);
 		ChildGrid.renderer.material.SetInt("_CellSize", CELL_SIZE);
 
-		ColCubeUninfected = new Color[2];
-		ColCubeInfected = new Color[2];
-		ColCubeUninfected[0] = MatCubeUninfected.color;
-		ColCubeUninfected[1] = MatCubeUninfected.GetColor ("_GlowColor");
-		ColCubeInfected[0] = MatCubeInfected.color;
-		ColCubeInfected[1] = MatCubeInfected.GetColor ("_GlowColor");
+		ColCubeUninfected = MatCubeUninfected.GetColor ("_GlowColor");
+		ColCubeInfected = MatCubeInfected.GetColor ("_GlowColor");
 		ColCoreUninfected = MatCoreUninfected.color;
 		ColCoreInfected = MatCoreInfected.color;
 
@@ -401,7 +397,7 @@ public class scrNodeMaster : MonoBehaviour
 		--inactiveCubeCount;
 	}
 
-	void DeactivateCube(LinkedListNode<GameObject> cube)
+	public void DeactivateCube(LinkedListNode<GameObject> cube)
 	{
 		cube.Value.SetActive(false);
 		cubePool.Remove(cube);

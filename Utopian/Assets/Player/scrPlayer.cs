@@ -18,6 +18,13 @@ public class scrPlayer : MonoBehaviour
 	public Vector2 MoveDirection { get; private set; }
 	public Vector2 AimDirection { get; private set; }
 
+	// --
+	scrBulletPool bulletPool;
+	float fireRate = 10;	// Shots per second.
+	float fireTimer = 0;
+	int fireMode = 0;
+
+
 	void Start ()
 	{
 		Instance = this;
@@ -25,6 +32,8 @@ public class scrPlayer : MonoBehaviour
 
 		MoveDirection = Vector2.zero;
 		AimDirection = Vector2.zero;
+
+		bulletPool = GetComponent<scrBulletPool>();
 
 		Screen.lockCursor = true;
 
@@ -34,6 +43,9 @@ public class scrPlayer : MonoBehaviour
 	
 	void Update ()
 	{
+		if (fireTimer < 1)
+			fireTimer += fireRate * Time.deltaTime;
+
 		ProcessInput ();
 	}
 
@@ -71,6 +83,21 @@ public class scrPlayer : MonoBehaviour
 		if (move != Vector2.zero)
 			move.Normalize();
 		MoveDirection = move;
+
+		// Check for shooting.		
+		if (Input.GetButton("Fire1"))
+		{
+			if (fireTimer >= 1)
+			{
+				if (fireMode == 0)
+					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.position + transform.up * 0.7f + transform.right * 0.4f, transform.right, 1);
+				else
+					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.position - transform.up * 0.7f + transform.right * 0.4f, transform.right, 1);
+
+				fireMode = (fireMode == 0 ? 1 : 0);
+				fireTimer = 0;
+			}
+		}
 	}
 
 	void OnPostRender()

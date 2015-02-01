@@ -70,6 +70,7 @@ public class scrNode : MonoBehaviour
 	public LinkedListNode<GameObject>[] Cubes { get; private set; }	// All cubes of this node.							// if only there was a way to make node a friend class of the node master, then this would be safer. This is all for speed so when the node master destroys the node and wants to add the cube to the cube pool again it doesnt have to search. 
 	List<Vector3[]>.Enumerator cubePositionEnumerator;	// Used when constructing the node to grab the cube positions without needing to iterate the list.
 	int cubePositionIndex = 0;	// Used when constructing the node to grab cubes from the cube positions.
+	int totalCubeCount = 0;
 
 	string[] words = new string[0];
 	int wordIndex = 0;
@@ -133,6 +134,8 @@ public class scrNode : MonoBehaviour
 			infectedCubeCount = 0;
 			ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreUninfected;
 		}
+
+		totalCubeCount = Cubes.Length;
 	}
 
 	public void MakeReady()
@@ -146,8 +149,10 @@ public class scrNode : MonoBehaviour
 		if (Infected)
 			cube.Value.GetComponent<scrCube>().InfectImmediate();
 
+		cube.Value.GetComponent<scrCube>().Parent = this;
+
 		// Position the cube with the precalculated array.
-		//cube.Value.transform.position = transform.TransformPoint(cubePositionEnumerator.Current[cubePositionIndex]);
+		cube.Value.transform.position = transform.position;
 		cube.Value.transform.rotation = transform.rotation;
 
 		// Store the linked list node for this cube.
@@ -157,15 +162,32 @@ public class scrNode : MonoBehaviour
 		++cubePositionIndex;
 	}
 
+	public void RemoveCube(GameObject cube)
+	{
+		for (int i = 0; i < Cubes.Length; ++i)
+		{
+			if (Cubes[i] != null)
+			{
+				if (Cubes[i].Value == cube)
+				{
+					scrNodeMaster.Instance.DeactivateCube(Cubes[i]);
+					Cubes[i] = null;
+					--totalCubeCount;
+				}
+			}
+		}
+	}
+
 	public void ConvertToInfected(Message message)
 	{
 		Data = message;
 
 		// Infect all cubes immediately.
-		infectedCubeCount = Cubes.Length;
+		infectedCubeCount = totalCubeCount;
 		foreach (LinkedListNode<GameObject> cube in Cubes)
 		{
-			cube.Value.GetComponent<scrCube>().InfectImmediate();
+			if (cube != null)
+				cube.Value.GetComponent<scrCube>().InfectImmediate();
 		}
 
 		Infect (0);
@@ -175,9 +197,9 @@ public class scrNode : MonoBehaviour
 	{
 		Infected = true;
 
-		if (infectedCubeCount + count >= Cubes.Length)
+		if (infectedCubeCount + count >= totalCubeCount)
 		{
-			count -= infectedCubeCount + count - Cubes.Length;
+			count -= infectedCubeCount + count - totalCubeCount;
 			FullyInfected = true;
 
 			// Read the text.
@@ -193,7 +215,8 @@ public class scrNode : MonoBehaviour
 		{
 			for (int i = infectedCubeCount; i < infectedCubeCount + count; ++i)
 			{
-				Cubes[i].Value.GetComponent<scrCube>().Infect();
+				if (Cubes[i] != null)
+					Cubes[i].Value.GetComponent<scrCube>().Infect();
 			}
 		}
 
@@ -411,19 +434,11 @@ public class scrNode : MonoBehaviour
 	public float GetInfectionAmount()
 	{
 		if (Cubes != null)
-			return (float)infectedCubeCount / Cubes.Length;
+			return (float)infectedCubeCount / totalCubeCount;
 
 		return 0;
 	}
 
-	public float GetCorruptionAmount()
-	{
-		if (Cubes != null)
-			return (1.0f - (float)Cubes.Length / Cubes.Length);
-
-		return 0;
-	}
-	
 	// Use this for initialization
 	void Start ()
 	{
@@ -463,7 +478,10 @@ public class scrNode : MonoBehaviour
 
 			// Expand out cubes.
 			for (int i = 0; i < Cubes.Length; ++i)
-				Cubes[i].Value.transform.position = Vector3.Lerp (transform.position, transform.TransformPoint(cubePositionEnumerator.Current[i]), expandTimer / expandDuration);
+			{
+				if (Cubes[i] != null)
+					Cubes[i].Value.transform.position = Vector3.Lerp (transform.position, transform.TransformPoint(cubePositionEnumerator.Current[i]), expandTimer / expandDuration);
+			}
 		}
 		else
 		{
