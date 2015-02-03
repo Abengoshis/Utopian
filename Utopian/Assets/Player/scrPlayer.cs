@@ -90,9 +90,9 @@ public class scrPlayer : MonoBehaviour
 			if (fireTimer >= 1)
 			{
 				if (fireMode == 0)
-					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.position + transform.up * 0.7f + transform.right * 0.4f, transform.right, 1);
+					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.position + transform.up * 0.7f + transform.right * 0.4f, transform.right, 50, 1);
 				else
-					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.position - transform.up * 0.7f + transform.right * 0.4f, transform.right, 1);
+					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.position - transform.up * 0.7f + transform.right * 0.4f, transform.right, 50, 1);
 
 				fireMode = (fireMode == 0 ? 1 : 0);
 				fireTimer = 0;

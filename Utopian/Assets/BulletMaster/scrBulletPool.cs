@@ -41,7 +41,7 @@ public class scrBulletPool : MonoBehaviour
 		}
 	}
 
-	public void Create(scrBullet.BehaviourType bulletType, Vector3 position, Vector3 direction, float speed)
+	public void Create(scrBullet.BehaviourType bulletType, Vector3 position, Vector3 direction, float speed, float damage)
 	{
 		// Check whether there are any bullets left.
 		if (available != Capacity)
@@ -57,9 +57,7 @@ public class scrBulletPool : MonoBehaviour
 
 			// Get the bullet script.
 			scrBullet bulletScript = bullet.GetComponent<scrBullet>();
-			bulletScript.Init (bulletType, position, direction, speed);
-
-			bullet.rigidbody.velocity = direction * 100;
+			bulletScript.Init (bulletType, position, direction, speed, damage);
 		}
 	}
 }

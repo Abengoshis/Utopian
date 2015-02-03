@@ -136,6 +136,8 @@ public class scrNode : MonoBehaviour
 		}
 
 		totalCubeCount = Cubes.Length;
+
+		GetComponent<BoxCollider>().size = new Vector3(coreSize * 4.5f, coreSize * 4.5f, 1);
 	}
 
 	public void MakeReady()
@@ -170,6 +172,10 @@ public class scrNode : MonoBehaviour
 			{
 				if (Cubes[i].Value == cube)
 				{
+					// Tell the gui which thing was destroyed.
+					scrGUI.Instance.AddToFeed("DEL mem[\"" + Data.page_title + "\"](" + (int)cubePositionEnumerator.Current[i].x + "," + (int)cubePositionEnumerator.Current[i].y + ")" + (Cubes[i].Value.GetComponent<scrCube>().Infected ? "-INFECTED" : "-CLEAN"));
+
+
 					scrNodeMaster.Instance.DeactivateCube(Cubes[i]);
 					Cubes[i] = null;
 					--totalCubeCount;
@@ -554,5 +560,14 @@ public class scrNode : MonoBehaviour
 				}
 			}
 		}
+	}
+
+	void OnGUI()
+	{
+		string text = Data.time + System.Environment.NewLine + "PAGE: " + Data.page_title + System.Environment.NewLine + "USER: " + Data.user +
+					  System.Environment.NewLine + "EDIT: " + Data.change_size.ToString() + " bytes";
+
+		scrGUI.Instance.DrawOutlinedText(text, Camera.main.WorldToViewportPoint(transform.position), Color.white, Color.black, 1);
+
 	}
 }

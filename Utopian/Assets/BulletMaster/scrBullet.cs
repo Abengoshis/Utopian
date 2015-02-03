@@ -47,7 +47,7 @@ public class scrBullet : MonoBehaviour
 		Expired = true;
 	}
 
-	public void Init(BehaviourType type, Vector3 position, Vector3 direction, float speed, float damage = 1)
+	public void Init(BehaviourType type, Vector3 position, Vector3 direction, float speed, float damage)
 	{
 		Expired = false;
 		transform.position = position;

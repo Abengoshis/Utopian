@@ -44,13 +44,13 @@
 				xDir /= dist;
 				yDir /= dist;
 			
-				float strength = 0.005f;	// put this in the array too
+				float strength = 0.05f;	// put this in the array too
 			
 				// Push the coordinates out through the direction, less over distance.
-				uv.x += (xDir * strength);
-				uv.y += (yDir * strength);
+				uv.x += (xDir * strength) / dist;
+				uv.y += (yDir * strength) / dist;
 				
-				if (dist < strength * 400)
+				if (dist < strength * 90)
 				{
 					return fixed4(0.0, 0.0, 0.0, 1.0);
 				}

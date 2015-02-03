@@ -49,6 +49,8 @@
      <Compile Include="Assets\BulletMaster\scrBullet.cs" />
      <Compile Include="Assets\BulletMaster\scrBulletPool.cs" />
      <Compile Include="Assets\Effects\Explosions\scrExplosion.cs" />
+     <Compile Include="Assets\EnemyMaster\scrEnemy.cs" />
+     <Compile Include="Assets\EnemyMaster\scrSnakeEnemy.cs" />
      <Compile Include="Assets\GUI\scrGUI.cs" />
      <Compile Include="Assets\NodeMaster\Cube\scrCube.cs" />
      <Compile Include="Assets\NodeMaster\Node\scrNode.cs" />

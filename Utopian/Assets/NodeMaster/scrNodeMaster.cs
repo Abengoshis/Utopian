@@ -11,7 +11,7 @@ public class scrNodeMaster : MonoBehaviour
 	#region Pool Variables
 
 	const int TOTAL_NODES = 100;
-	const int TOTAL_CUBES = 10000;
+	const int TOTAL_CUBES = 6000;
 
 	// These static pools will be loaded when the player plays their first game.
 	static LinkedList<GameObject> nodePool;
@@ -25,9 +25,10 @@ public class scrNodeMaster : MonoBehaviour
 	static int inactiveNodeCount = 0;
 	static int inactiveCubeCount = 0;
 	static int freePositionsCount = 0;
-	
+
 	public const int GRID_SIZE = 20;
 	public const int CELL_SIZE = 20;
+	public static bool[,] FreeCells { get; private set; }
 
 	#endregion
 
@@ -160,10 +161,33 @@ public class scrNodeMaster : MonoBehaviour
 			cube.SetActive(false);
 		
 		freePositionsCount = positions.Length;
+
+		for (int i = 0; i < GRID_SIZE; ++i)
+			for (int j = 0; j < GRID_SIZE; ++j)
+				FreeCells[i, j] = true;
 	}
 
 	#endregion
 
+	public static int ToCellSpace(float value)
+	{
+		return (int)(value + GRID_SIZE * CELL_SIZE * 0.5f) / CELL_SIZE;
+	}
+
+	public static Vector2 ToCellSpace(Vector2 value)
+	{
+		return new Vector2((int)(value.x + GRID_SIZE * CELL_SIZE * 0.5f) / CELL_SIZE, (int)(value.y + GRID_SIZE * CELL_SIZE * 0.5f) / CELL_SIZE);
+	}
+
+	public static float ToWorldSpace(float value)
+	{
+		return value * CELL_SIZE - GRID_SIZE * CELL_SIZE;
+	}
+
+	public static Vector2 ToWorldSpace(Vector2 value)
+	{
+		return value * CELL_SIZE - Vector2.one * GRID_SIZE * CELL_SIZE * 0.5f;
+	}
 	// Use this for initialization
 	void Start ()
 	{
@@ -178,6 +202,11 @@ public class scrNodeMaster : MonoBehaviour
 		ColCubeInfected = MatCubeInfected.GetColor ("_GlowColor");
 		ColCoreUninfected = MatCoreUninfected.color;
 		ColCoreInfected = MatCoreInfected.color;
+
+		FreeCells = new bool[GRID_SIZE, GRID_SIZE];
+		for (int i = 0; i < GRID_SIZE; ++i)
+			for (int j = 0; j < GRID_SIZE; ++j)
+				FreeCells[i, j] = true;
 
 		// Disable. Reenabled by the master.
 		enabled = false;
@@ -214,8 +243,6 @@ public class scrNodeMaster : MonoBehaviour
 		// Set the shader's player position uniform.
 		ChildGrid.renderer.material.SetFloat("_PlayerX", scrPlayer.Instance.transform.position.x);
 		ChildGrid.renderer.material.SetFloat("_PlayerY", scrPlayer.Instance.transform.position.y);
-
-
 	}
 
 	public void ReceiveMessage(Message message)
@@ -298,6 +325,7 @@ public class scrNodeMaster : MonoBehaviour
 		node.Value.transform.position = GetRandomFreePosition();
 		scrNode nodeScript = node.Value.GetComponent<scrNode>();
 		nodeScript.Init(node, message, coreSize, infected);
+		FreeCells[ToCellSpace(nodeScript.transform.position.x), ToCellSpace(nodeScript.transform.position.y)] = false;
 
 		// Assign cubes to the node.
 		LinkedListNode<GameObject> cube = cubePool.First;
@@ -332,6 +360,7 @@ public class scrNodeMaster : MonoBehaviour
 	public IEnumerator Destroy(LinkedListNode<GameObject> node)
 	{
 		scrNode nodeScript = node.Value.GetComponent<scrNode>();
+		FreeCells[ToCellSpace(nodeScript.transform.position.x), ToCellSpace(nodeScript.transform.position.y)] = true;
 
 		// Clear and reset the nodes cubes and make them available to future nodes.
 		for (int i = 0, numLoops = 0; i < nodeScript.Cubes.Length; ++i)
