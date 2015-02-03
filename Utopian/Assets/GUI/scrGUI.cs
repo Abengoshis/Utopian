@@ -6,6 +6,7 @@ public class scrGUI : MonoBehaviour
 {
 	public static scrGUI Instance { get; private set; }
 	public static Canvas GUICanvas { get; private set; }
+	public static Canvas WorldCanvas { get; private set; }
 
 	public GUISkin Skin;
 
@@ -48,6 +49,9 @@ public class scrGUI : MonoBehaviour
 
 	public void DrawOutlinedText(string text, Vector3 viewportPosition, Color interior, Color outline, float thickness)
 	{
+		if (viewportPosition.x < -0.5f || viewportPosition.x > 1.5f || viewportPosition.y < -0.5f || viewportPosition.x > 1.5f)
+			return;
+
 		float screenScale = Screen.height / 720.0f;
 		GUI.skin = scrGUI.Instance.Skin;
 		GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity,

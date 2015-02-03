@@ -1,9 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class scrCube : MonoBehaviour
 {
+	public LinkedListNode<GameObject> Cube { get; private set; }
 	public bool Infected { get; private set; }
+	public bool Uploading { get; private set; }
 	public GameObject ExplosionPrefab;
 	public scrNode Parent;
 
@@ -12,9 +15,11 @@ public class scrCube : MonoBehaviour
 	bool infectionTransitionCompleted = false;
 
 	float damageTimer = 0;
-	float damageToDestroy = 3;
+	float damageToDestroy = 2;
 
-	public GameObject SparkChild { get; private set; }
+	public GameObject ChildSpark { get; private set; }
+
+	scrPathfinder pathfinder;
 
 	// Set infect over time flag.
 	public void Infect()
@@ -28,30 +33,64 @@ public class scrCube : MonoBehaviour
 		Infected = true;
 		infectionTransitionCompleted = true;
 		renderer.material = scrNodeMaster.Instance.MatCubeInfected;
-		SparkChild.particleSystem.startColor = scrNodeMaster.ColCubeInfected;
+		ChildSpark.particleSystem.startColor = scrNodeMaster.ColCubeInfected;
 	}
 
-	public void Reset()
+	public void Init(LinkedListNode<GameObject> cube, scrNode parent, Vector3 position, bool infected)
 	{
+		transform.position = position;
 		transform.rotation = Quaternion.identity;
-		
-		Infected = false;
-		infectionTransitionCompleted = false;
-		infectionTransitionTimer = 0.0f;
-		renderer.material = scrNodeMaster.Instance.MatCubeUninfected;
-		SparkChild.particleSystem.startColor = scrNodeMaster.ColCubeUninfected;
+		Parent = parent;
+
+		if (infected)
+		{
+			Infected = true;
+			infectionTransitionCompleted = true;
+			renderer.material = scrNodeMaster.Instance.MatCubeInfected;
+			ChildSpark.particleSystem.startColor = scrNodeMaster.ColCubeInfected;
+		}
+		else
+		{
+			Infected = false;
+			infectionTransitionCompleted = false;
+			infectionTransitionTimer = 0.0f;
+			renderer.material = scrNodeMaster.Instance.MatCubeUninfected;
+			ChildSpark.particleSystem.startColor = scrNodeMaster.ColCubeUninfected;
+		}
+
+		damageTimer = 0;
+		Uploading = false;
+		pathfinder.Pause ();
 	}
-	
+
+	public void Upload()
+	{
+		Uploading = true;
+		pathfinder.Resume();
+	}
+
 	// Use this for initialization
 	void Start ()
 	{
-		SparkChild = transform.Find ("Spark").gameObject;
-		Reset ();
+		ChildSpark = transform.Find ("Spark").gameObject;
+		pathfinder = GetComponent<scrPathfinder>();
+		pathfinder.Target = GameObject.Find ("AICore");
+		Init (null, null, Vector3.zero, false);
 	}
-	
+
 	// Update is called once per frame
 	void Update ()
 	{
+		if (Uploading)
+		{
+			// While uploading (pathing towards the core) check if within the core.
+			if (false)//within the core)
+			{
+				scrNodeMaster.Instance.DeactivateCube(Cube);
+			}
+
+		}
+
 		if (Infected)
 		{
 			if (!infectionTransitionCompleted)
@@ -61,7 +100,7 @@ public class scrCube : MonoBehaviour
 				{
 					infectionTransitionCompleted = true;
 					renderer.material = scrNodeMaster.Instance.MatCubeInfected;
-					SparkChild.particleSystem.startColor = scrNodeMaster.ColCubeInfected;
+					ChildSpark.particleSystem.startColor = scrNodeMaster.ColCubeInfected;
 				}
 				else
 				{
@@ -91,7 +130,7 @@ public class scrCube : MonoBehaviour
 			}
 			else if (damageTimer > 0)
 			{
-				damageTimer -= Time.deltaTime * damageToDestroy;
+				damageTimer -= 2 * Time.deltaTime;
 				renderer.material.color = Color.Lerp(Color.black, Color.white, damageTimer / damageToDestroy);
 			}
 		}
@@ -103,8 +142,8 @@ public class scrCube : MonoBehaviour
 		{
 			scrBullet bullet = c.gameObject.GetComponent<scrBullet>();
 			damageTimer += bullet.Damage;
-			SparkChild.transform.forward = -bullet.Direction;
-			SparkChild.particleSystem.Emit (10);
+			ChildSpark.transform.forward = -bullet.Direction;
+			ChildSpark.particleSystem.Emit (10);
 		}
 	}
 }

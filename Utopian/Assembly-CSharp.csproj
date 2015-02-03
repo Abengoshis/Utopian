@@ -49,15 +49,16 @@
      <Compile Include="Assets\BulletMaster\scrBullet.cs" />
      <Compile Include="Assets\BulletMaster\scrBulletPool.cs" />
      <Compile Include="Assets\Effects\Explosions\scrExplosion.cs" />
-     <Compile Include="Assets\EnemyMaster\scrEnemy.cs" />
      <Compile Include="Assets\EnemyMaster\scrSnakeEnemy.cs" />
      <Compile Include="Assets\GUI\scrGUI.cs" />
      <Compile Include="Assets\NodeMaster\Cube\scrCube.cs" />
      <Compile Include="Assets\NodeMaster\Node\scrNode.cs" />
      <Compile Include="Assets\NodeMaster\scrNodeMaster.cs" />
      <Compile Include="Assets\Player\scrPlayer.cs" />
+     <Compile Include="Assets\Wikiworld\scrAICore.cs" />
      <Compile Include="Assets\scrCamera.cs" />
      <Compile Include="Assets\scrMaster.cs" />
+     <Compile Include="Assets\scrPathfinder.cs" />
      <Compile Include="Assets\scrWebSocketClient.cs" />
      <None Include="Assets\NodeMaster\Cube\shdCube.shader" />
      <None Include="Assets\NodeMaster\shdGrid.shader" />

@@ -56,6 +56,7 @@ public class scrNode : MonoBehaviour
 	public Message Data { get; private set; }
 	public bool FullyInfected { get; private set; }
 	public bool Infected { get; private set; }
+	public bool Uploading { get; private set; }
 	float infectionPulseDelay = 5.0f;
 	float infectionPulseTimer = 0.0f;
 	int infectedCubeCount = 0;
@@ -82,16 +83,32 @@ public class scrNode : MonoBehaviour
 
 	bool ready = false;
 
+	float damageTimer = 0;
+	float damageToDestroy = 20;
+	Material currentMaterial;
+
+	float uploadDuration = 0;
+	float uploadTimer = 0;
+
 //	public List<scrEnemy> Enemies { get; private set; }
 
 	public GameObject ChildCore { get; private set; }
+	public GameObject ChildSpark { get; private set; }
+	public GameObject ExplosionPrefab;
 
 	public void Init(LinkedListNode<GameObject> node, Message data, int coreSize, bool infected)
 	{
 		ready = false;
 		Node = node;
 		Data = data;
+		Uploading = false;
+		uploadTimer = 0;
+		uploadDuration = coreSize;
+
 		infectionPulseTimer = 0.0f;
+
+		damageTimer = 0;
+
 		spawnTimer = 0.0f;
 		wordIndex = 0;
 
@@ -128,11 +145,13 @@ public class scrNode : MonoBehaviour
 			infectionPulseDelay = PULSE_DELAY_MAX * (1 - (coreSize - 1) / CORE_SIZE_MAX);
 			infectedCubeCount = Cubes.Length;
 			ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreInfected;
+			currentMaterial = new Material(ChildCore.renderer.material);
 		}
 		else
 		{
 			infectedCubeCount = 0;
 			ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreUninfected;
+			currentMaterial = new Material(ChildCore.renderer.material);
 		}
 
 		totalCubeCount = Cubes.Length;
@@ -147,15 +166,9 @@ public class scrNode : MonoBehaviour
 	
 	public void AddCube(LinkedListNode<GameObject> cube)
 	{
-		// Infect the cube if this node is a primary infection.
-		if (Infected)
-			cube.Value.GetComponent<scrCube>().InfectImmediate();
-
-		cube.Value.GetComponent<scrCube>().Parent = this;
-
-		// Position the cube with the precalculated array.
-		cube.Value.transform.position = transform.position;
-		cube.Value.transform.rotation = transform.rotation;
+		// Initialise the cube.
+		scrCube cubeScript = cube.Value.GetComponent<scrCube>();
+		cubeScript.Init (cube, this, transform.position, FullyInfected);
 
 		// Store the linked list node for this cube.
 		Cubes[cubePositionIndex] = cube;
@@ -213,6 +226,7 @@ public class scrNode : MonoBehaviour
 
 			// Set the infected materials.
 			ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreInfected;
+			currentMaterial.CopyPropertiesFromMaterial(ChildCore.renderer.material);
 
 			scrNodeMaster.Instance.CreateLinks(Node);
 		}
@@ -450,7 +464,7 @@ public class scrNode : MonoBehaviour
 	{
 		//Enemies = new List<scrEnemy>();
 		ChildCore = transform.Find ("Core").gameObject;
-
+		ChildSpark = transform.Find ("Spark").gameObject;
 
 		for (int i = 0; i < LINKS_MAX; ++i)
 		{
@@ -557,9 +571,81 @@ public class scrNode : MonoBehaviour
 				if (infectionAmount > 0)
 				{
 					ChildCore.renderer.material.color = Color.Lerp (scrNodeMaster.ColCoreUninfected, scrNodeMaster.ColCoreInfected, infectionAmount);
+					currentMaterial.CopyPropertiesFromMaterial(ChildCore.renderer.material);
 				}
 			}
 		}
+
+
+		// Damage control.
+		if (damageTimer > damageToDestroy)
+		{
+			scrGUI.Instance.AddToFeed("DEL mem[\"" + Data.page_title + "\"]-" + (Infected ? (GetInfectionAmount() * 100) + "% INFECTED" : "CLEAN"));
+
+			GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, transform.position, Quaternion.identity);
+			explosion.particleSystem.startColor = currentMaterial.color;
+
+			for (int i = 0; i < Cubes.Length; ++i)
+			{
+				if (Cubes[i] != null)
+				{
+					scrNodeMaster.Instance.DeactivateCube(Cubes[i]);
+				}
+			}
+
+			scrNodeMaster.Instance.DeactivateNode(Node);
+		}
+		else
+		{
+			if (damageTimer < 0)
+			{
+				damageTimer = 0;
+				
+				ChildCore.renderer.material = currentMaterial;
+			}
+			else if (damageTimer > 0)
+			{
+				damageTimer -= 2 * Time.deltaTime;
+
+				ChildCore.renderer.material.color = Color.Lerp(currentMaterial.color, Color.white, damageTimer / damageToDestroy);
+			}
+		}
+
+		// If uploading, run the upload timer.
+		if (Uploading)
+		{
+			uploadTimer += Time.deltaTime;
+			if (uploadTimer >= uploadDuration)
+			{
+				// End the upload.
+				StartCoroutine(EndUpload());
+				Uploading = false;
+			}
+			ChildCore.renderer.material.color = Color.Lerp (currentMaterial.color, Color.white, uploadTimer/uploadDuration);
+		}
+
+	}
+
+	public void BeginUpload()
+	{
+		Uploading = true;
+	}
+
+	IEnumerator EndUpload()
+	{		
+		// "Upload" all cubes over time.
+		for (int i = 0; i < Cubes.Length; ++i)
+		{
+			if (Cubes[i] != null)
+			{
+				Cubes[i].Value.GetComponent<scrCube>().Upload();
+				Cubes[i] = null;
+				yield return new WaitForSeconds(0.2f);
+			}
+		}
+
+		// Finally, deactivate the node.
+		scrNodeMaster.Instance.DeactivateNode(Node);
 	}
 
 	void OnGUI()
@@ -569,5 +655,16 @@ public class scrNode : MonoBehaviour
 
 		scrGUI.Instance.DrawOutlinedText(text, Camera.main.WorldToViewportPoint(transform.position), Color.white, Color.black, 1);
 
+	}
+
+	void OnCollisionEnter(Collision c)
+	{
+		if (c.gameObject.layer == LayerMask.NameToLayer("PBullet"))
+		{
+			scrBullet bullet = c.gameObject.GetComponent<scrBullet>();
+			damageTimer += bullet.Damage;
+			ChildSpark.transform.forward = -bullet.Direction;
+			ChildSpark.particleSystem.Emit (10);
+		}
 	}
 }

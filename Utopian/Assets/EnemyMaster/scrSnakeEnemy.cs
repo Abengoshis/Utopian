@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class scrSnakeEnemy : scrEnemy
+public class scrSnakeEnemy : MonoBehaviour
 {
 	public string Word;
 	public GameObject SegmentPrefab;
@@ -33,11 +33,11 @@ public class scrSnakeEnemy : scrEnemy
 	}
 	
 	// Update is called once per frame
-	protected override void CustomUpdate ()
+	void Update ()
 	{
-		if (!Pathing)
+		//if (!Pathing)
 		{
-			transform.position += (scrPlayer.Instance.transform.position - transform.position).normalized * Speed * Time.deltaTime;
+			//transform.position += (scrPlayer.Instance.transform.position - transform.position).normalized * Speed * Time.deltaTime;
 		}
 
 		// Only shift segments if the head is moving.

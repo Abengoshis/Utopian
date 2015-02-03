@@ -10,8 +10,8 @@ public class scrNodeMaster : MonoBehaviour
 
 	#region Pool Variables
 
-	const int TOTAL_NODES = 100;
-	const int TOTAL_CUBES = 6000;
+	const int TOTAL_NODES = 10;
+	const int TOTAL_CUBES = 1000;
 
 	// These static pools will be loaded when the player plays their first game.
 	static LinkedList<GameObject> nodePool;
@@ -35,6 +35,8 @@ public class scrNodeMaster : MonoBehaviour
 	Queue<Message> messageQueue = new Queue<Message>();
 	bool creating = false;
 
+	public scrNode NodeBeingUploaded { get; private set; }
+
 	public GameObject NodePrefab;
 	public GameObject CubePrefab;
 	public Material MatCubeUninfected, MatCubeInfected;
@@ -47,6 +49,7 @@ public class scrNodeMaster : MonoBehaviour
 	public static Color ColCoreInfected { get; private set; }
 
 	public GameObject ChildGrid { get; private set; }
+	public GameObject ChildSpark { get; private set; }
 
 	#region Pool Functions
 
@@ -128,7 +131,7 @@ public class scrNodeMaster : MonoBehaviour
 	{
 		if (!positionsLoaded)
 		{
-			positions = new Vector3[GRID_SIZE * GRID_SIZE - 5];
+			positions = new Vector3[GRID_SIZE * GRID_SIZE - 4];
 			freePositionsCount = 0;
 			
 			int mid = GRID_SIZE / 2;
@@ -136,8 +139,7 @@ public class scrNodeMaster : MonoBehaviour
 			{
 				for (int j = 0; j < GRID_SIZE; ++j)
 				{
-					if (!((i == mid || i == mid - 1 || i == mid + 1) && j == mid) &&
-					    !((j == mid || j == mid - 1 || j == mid + 1) && i == mid))
+					if (!((i == mid || i == mid - 1) && (j == mid || j == mid - 1)))
 					{
 						positions[freePositionsCount] = new Vector3(i * CELL_SIZE - GRID_SIZE * CELL_SIZE * 0.5f + CELL_SIZE * 0.5f,
 						                                            j * CELL_SIZE - GRID_SIZE * CELL_SIZE * 0.5f + CELL_SIZE * 0.5f);
@@ -243,6 +245,28 @@ public class scrNodeMaster : MonoBehaviour
 		// Set the shader's player position uniform.
 		ChildGrid.renderer.material.SetFloat("_PlayerX", scrPlayer.Instance.transform.position.x);
 		ChildGrid.renderer.material.SetFloat("_PlayerY", scrPlayer.Instance.transform.position.y);
+
+		// Check if the node has finished uploading.
+		if (NodeBeingUploaded == null || !NodeBeingUploaded.Uploading)
+		{
+			// Get the next node to upload.  This should be the earliest node added.
+			if (inactiveNodeCount > 0)
+			{
+				LinkedList<GameObject>.Enumerator n = nodePool.GetEnumerator();
+				n.MoveNext();	
+				while (!n.Current.activeSelf)
+				{
+					n.MoveNext();
+				}
+
+				NodeBeingUploaded = n.Current.GetComponent<scrNode>();
+				NodeBeingUploaded.BeginUpload();
+			}
+			else
+			{
+				NodeBeingUploaded = null;
+			}
+		}
 	}
 
 	public void ReceiveMessage(Message message)
@@ -296,6 +320,10 @@ public class scrNodeMaster : MonoBehaviour
 			LinkedListNode<GameObject> n = nodePool.Last;
 			for (int i = 0; i < TOTAL_NODES - inactiveNodeCount; ++i)
 			{
+				// Don't replace the node being uploaded.
+				if (n.Value == NodeBeingUploaded.gameObject)
+					continue;
+
 				Vector2 position = n.Value.transform.position;
 				Vector2 topLeft = Camera.main.ScreenToWorldPoint(Vector2.zero);
 				Vector2 bottomRight = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
@@ -310,7 +338,7 @@ public class scrNodeMaster : MonoBehaviour
 					break;
 				}
 
-				// Move abck one node.
+				// Move back one node.
 				n = n.Previous;
 			}
 
@@ -366,7 +394,6 @@ public class scrNodeMaster : MonoBehaviour
 		for (int i = 0, numLoops = 0; i < nodeScript.Cubes.Length; ++i)
 		{
 			LinkedListNode<GameObject> cube = nodeScript.Cubes[i];
-			cube.Value.GetComponent<scrCube>().Reset ();
 			DeactivateCube(cube);
 			if (++numLoops == LOOPS_PER_FRAME)
 			{
@@ -410,7 +437,7 @@ public class scrNodeMaster : MonoBehaviour
 		--inactiveNodeCount;
 	}
 
-	void DeactivateNode(LinkedListNode<GameObject> node)
+	public void DeactivateNode(LinkedListNode<GameObject> node)
 	{
 		node.Value.SetActive(false);
 		nodePool.Remove (node);
