@@ -55,6 +55,7 @@ public class scrMaster : MonoBehaviour
 		// Reenable game scripts.
 		scrPlayer.Instance.enabled = true;
 		scrNodeMaster.Instance.enabled = true;
+		scrEnemyMaster.Instance.enabled = true;
 
 		Loading = false;
 	}

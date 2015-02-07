@@ -46,10 +46,13 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\BulletMaster\scrBullet.cs" />
-     <Compile Include="Assets\BulletMaster\scrBulletPool.cs" />
+     <Compile Include="Assets\Bullets\scrBullet.cs" />
+     <Compile Include="Assets\Bullets\scrBulletPool.cs" />
      <Compile Include="Assets\Effects\Explosions\scrExplosion.cs" />
-     <Compile Include="Assets\EnemyMaster\scrSnakeEnemy.cs" />
+     <Compile Include="Assets\EnemyMaster\Snake\scrSnakeEnemy.cs" />
+     <Compile Include="Assets\EnemyMaster\User\scrUserEnemy.cs" />
+     <Compile Include="Assets\EnemyMaster\scrEnemy.cs" />
+     <Compile Include="Assets\EnemyMaster\scrEnemyMaster.cs" />
      <Compile Include="Assets\GUI\scrGUI.cs" />
      <Compile Include="Assets\NodeMaster\Cube\scrCube.cs" />
      <Compile Include="Assets\NodeMaster\Node\scrNode.cs" />

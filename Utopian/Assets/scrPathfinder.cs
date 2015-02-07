@@ -10,7 +10,7 @@ public class scrPathfinder : MonoBehaviour
 	private float movement = 0;
 	private bool prevVertical = false;
 
-	private bool justStarted = false;
+	private bool justStarted = true;
 	public bool Pathing { get; private set; }
 	public GameObject Target;
 
@@ -22,8 +22,11 @@ public class scrPathfinder : MonoBehaviour
 
 	public void Resume()
 	{
-		Pathing = true;
-		justStarted = true;
+		if (!Pathing)
+		{
+			Pathing = true;
+			justStarted = true;
+		}
 	}
 
 	public void Pause()
@@ -45,7 +48,7 @@ public class scrPathfinder : MonoBehaviour
 			GridPosition = ((Vector2)transform.position + Vector2.one * scrNodeMaster.GRID_SIZE * scrNodeMaster.CELL_SIZE * 0.5f) / scrNodeMaster.CELL_SIZE;
 			Vector2 snapPosition = scrNodeMaster.ToCellSpace(transform.position);
 
-			if (!scrNodeMaster.FreeCells[(int)snapPosition.x, (int)snapPosition.y])
+			if (gameObject.layer != LayerMask.NameToLayer("Cube") && !scrNodeMaster.FreeCells[(int)snapPosition.x, (int)snapPosition.y])
 			{
 				NextGridPosition = snapPosition;
 			}
@@ -111,6 +114,7 @@ public class scrPathfinder : MonoBehaviour
 			}
 		}
 
-		transform.position = Vector2.Lerp (scrNodeMaster.ToWorldSpace(GridPosition), scrNodeMaster.ToWorldSpace(NextGridPosition), movement / movementTarget);
+		if (movementTarget != 0)
+			transform.position = Vector2.Lerp (scrNodeMaster.ToWorldSpace(GridPosition), scrNodeMaster.ToWorldSpace(NextGridPosition), movement / movementTarget);
 	}
 }

@@ -110,7 +110,11 @@ public class scrWebSocketClient : MonoBehaviour
 		// Dump a message into the feed every frame.
 		while (messagesAccumulated.Count != 0)
 		{
-			scrNodeMaster.Instance.ReceiveMessage(messagesAccumulated.Dequeue());
+			Message m = messagesAccumulated.Dequeue();
+			if (m.page_title != null)
+				scrNodeMaster.Instance.ReceiveMessage(m);
+			else
+				scrEnemyMaster.Instance.ReceiveMessage(m);
 		}
 
 	}
@@ -120,7 +124,7 @@ public class scrWebSocketClient : MonoBehaviour
 		Dictionary<string, object> messageData = JsonConvert.DeserializeObject<Dictionary<string, object>>(data);
 
 		// Filter to only "Main" value of "ns", which are normal page edits. 
-		if ((string)messageData["action"] == "edit" && (string)messageData["ns"] == "Main" && System.Convert.ToInt32(messageData["change_size"]) != 0 && (bool)messageData["is_minor"] == false)
+		if ((string)messageData["ns"] == "Main" && (string)messageData["action"] == "edit" && System.Convert.ToInt32(messageData["change_size"]) != 0 && (bool)messageData["is_minor"] == false)
 		{
 			// Create a message from the message data.
 			Message message = new Message();
@@ -145,6 +149,12 @@ public class scrWebSocketClient : MonoBehaviour
 			}
 
 			messagesAccumulated.Enqueue (message);
+		}
+		else if ((string)messageData["page_title"] == "Special:Log/newusers")
+		{
+			Message message = new Message();
+			message.user = (string)messageData["user"];
+			messagesAccumulated.Enqueue(message);
 		}
 	}
 }

@@ -9,6 +9,7 @@ public class scrBullet : MonoBehaviour
 	}
 
 	public bool Expired { get; private set; }
+	public bool ExpireWhenNotVisible = false;
 
 	public Vector3 Direction;
 	public float Speed;
@@ -29,7 +30,7 @@ public class scrBullet : MonoBehaviour
 	{
 		transform.right = Direction;
 
-		if (!GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(Camera.main), collider.bounds))	
+		if (ExpireWhenNotVisible && !GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(Camera.main), collider.bounds))	
 			Expired = true;
 
 		if (updateBehaviour != null)
@@ -47,9 +48,10 @@ public class scrBullet : MonoBehaviour
 		Expired = true;
 	}
 
-	public void Init(BehaviourType type, Vector3 position, Vector3 direction, float speed, float damage)
+	public void Init(BehaviourType type, Vector3 position, Vector3 direction, float speed, float damage, bool expireWhenNotVisible)
 	{
 		Expired = false;
+		ExpireWhenNotVisible = expireWhenNotVisible;
 		transform.position = position;
 		Direction = direction;
 		Speed = speed;

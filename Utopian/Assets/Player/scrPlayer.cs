@@ -8,11 +8,11 @@ public class scrPlayer : MonoBehaviour
 
 	public Vector2 SimulatedCursorPosition { get; private set; }
 	Vector2 simulatedCursorOffset = Vector2.zero;
-	float simulatedCursorRadius = 25.0f;
+	float simulatedCursorRadius = 80.0f;
 
 	// --
-	float acceleration = 60.0f;
-	float topSpeed = 60.0f;
+	float acceleration = 200.0f;
+	float topSpeed = 200.0f;
 	bool  boosting = false;
 
 	public Vector2 MoveDirection { get; private set; }
@@ -20,7 +20,7 @@ public class scrPlayer : MonoBehaviour
 
 	// --
 	scrBulletPool bulletPool;
-	float fireRate = 10;	// Shots per second.
+	float fireRate = 20;	// Shots per second.
 	float fireTimer = 0;
 	int fireMode = 0;
 
@@ -59,7 +59,7 @@ public class scrPlayer : MonoBehaviour
 
 	void ProcessInput()
 	{
-		simulatedCursorOffset += new Vector2(Input.GetAxis ("Mouse X") / Screen.width, Input.GetAxis ("Mouse Y") / Screen.height) * 700;
+		simulatedCursorOffset += new Vector2(Input.GetAxis ("Mouse X") / Screen.width, Input.GetAxis ("Mouse Y") / Screen.height) * 1000;
 		if (simulatedCursorOffset.magnitude > simulatedCursorRadius)
 			simulatedCursorOffset = simulatedCursorOffset.normalized * simulatedCursorRadius;
 		SimulatedCursorPosition = (Vector2)transform.position + simulatedCursorOffset;
@@ -90,9 +90,9 @@ public class scrPlayer : MonoBehaviour
 			if (fireTimer >= 1)
 			{
 				if (fireMode == 0)
-					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.position + transform.up * 0.7f + transform.right * 0.4f, transform.right, 50, 1);
+					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.position + transform.up * 0.7f + transform.right * 0.4f, transform.right, 80, 1, true);
 				else
-					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.position - transform.up * 0.7f + transform.right * 0.4f, transform.right, 50, 1);
+					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.position - transform.up * 0.7f + transform.right * 0.4f, transform.right, 80, 1, true);
 
 				fireMode = (fireMode == 0 ? 1 : 0);
 				fireTimer = 0;

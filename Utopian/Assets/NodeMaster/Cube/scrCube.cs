@@ -41,18 +41,17 @@ public class scrCube : MonoBehaviour
 		transform.position = position;
 		transform.rotation = Quaternion.identity;
 		Parent = parent;
+		Cube = cube;
 
+		Infected = infected;
+		infectionTransitionCompleted = infected;
 		if (infected)
 		{
-			Infected = true;
-			infectionTransitionCompleted = true;
 			renderer.material = scrNodeMaster.Instance.MatCubeInfected;
 			ChildSpark.particleSystem.startColor = scrNodeMaster.ColCubeInfected;
 		}
 		else
 		{
-			Infected = false;
-			infectionTransitionCompleted = false;
 			infectionTransitionTimer = 0.0f;
 			renderer.material = scrNodeMaster.Instance.MatCubeUninfected;
 			ChildSpark.particleSystem.startColor = scrNodeMaster.ColCubeUninfected;
@@ -66,6 +65,7 @@ public class scrCube : MonoBehaviour
 	public void Upload()
 	{
 		Uploading = true;
+		Parent = null;
 		pathfinder.Resume();
 	}
 
@@ -84,11 +84,14 @@ public class scrCube : MonoBehaviour
 		if (Uploading)
 		{
 			// While uploading (pathing towards the core) check if within the core.
-			if (false)//within the core)
+			if (transform.position.x < 10 && transform.position.x > -10 && transform.position.y < 10 && transform.position.y > -10)
 			{
 				scrNodeMaster.Instance.DeactivateCube(Cube);
+				Uploading = false;
+				return;
 			}
 
+			transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.identity, Time.deltaTime * 100);
 		}
 
 		if (Infected)
@@ -115,7 +118,13 @@ public class scrCube : MonoBehaviour
 		{
 			GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, transform.position, Quaternion.identity);
 			explosion.particleSystem.startColor = Color.Lerp (renderer.material.GetColor("_GlowColor"), Color.white, 0.5f);
-			Parent.RemoveCube(gameObject);
+
+			if (Parent == null)
+			{
+				scrNodeMaster.Instance.DeactivateCube(Cube);
+			}
+			else
+				Parent.RemoveCube(Cube);
 		}
 		else
 		{
@@ -138,7 +147,7 @@ public class scrCube : MonoBehaviour
 
 	void OnCollisionEnter(Collision c)
 	{
-		if (c.gameObject.layer == LayerMask.NameToLayer("PBullet"))
+		if (c.gameObject.layer == LayerMask.NameToLayer("PBullet") || c.gameObject.layer == LayerMask.NameToLayer("EBullet"))
 		{
 			scrBullet bullet = c.gameObject.GetComponent<scrBullet>();
 			damageTimer += bullet.Damage;

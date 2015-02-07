@@ -6,12 +6,12 @@ public class scrNodeMaster : MonoBehaviour
 {
 	public static scrNodeMaster Instance { get; private set; }
 
-	const int LOOPS_PER_FRAME = 50;
+	const int LOOPS_PER_FRAME = 200;
 
 	#region Pool Variables
 
-	const int TOTAL_NODES = 10;
-	const int TOTAL_CUBES = 1000;
+	const int TOTAL_NODES = 100;
+	const int TOTAL_CUBES = 10000;
 
 	// These static pools will be loaded when the player plays their first game.
 	static LinkedList<GameObject> nodePool;
@@ -26,8 +26,8 @@ public class scrNodeMaster : MonoBehaviour
 	static int inactiveCubeCount = 0;
 	static int freePositionsCount = 0;
 
-	public const int GRID_SIZE = 20;
-	public const int CELL_SIZE = 20;
+	public const int GRID_SIZE = 10;
+	public const int CELL_SIZE = 40;
 	public static bool[,] FreeCells { get; private set; }
 
 	#endregion
@@ -228,7 +228,7 @@ public class scrNodeMaster : MonoBehaviour
 
 				// Check the message for certain criteria to determine whether or not to make an infected or uninfected node.
 				string summary = message.summary != null ? message.summary.ToUpper() : "";
-				if (summary == "" || !(summary.Contains("UNDID") || summary.Contains("REVERSION") || summary.Contains("VANDAL") || summary.Contains("SPAM")))
+				if (summary == "" || !(summary.Contains("UNDID") || summary.Contains ("UNDO") || summary.Contains("REVERT") || summary.Contains("REVERSION") || summary.Contains("VANDAL") || summary.Contains("SPAM")))
 				{
 					// If the user is not a bot, create the node.  An edit by a bot that is not a vandalism reversion is unlikely to contain any decent information.
 					if (!message.is_bot && !message.is_anon)
@@ -252,15 +252,15 @@ public class scrNodeMaster : MonoBehaviour
 			// Get the next node to upload.  This should be the earliest node added.
 			if (inactiveNodeCount > 0)
 			{
-				LinkedList<GameObject>.Enumerator n = nodePool.GetEnumerator();
-				n.MoveNext();	
-				while (!n.Current.activeSelf)
+				foreach (GameObject n in nodePool)
 				{
-					n.MoveNext();
+					if (n.activeSelf)
+					{
+						NodeBeingUploaded = n.GetComponent<scrNode>();
+//						NodeBeingUploaded.BeginUpload();
+						break;
+					}
 				}
-
-				NodeBeingUploaded = n.Current.GetComponent<scrNode>();
-				NodeBeingUploaded.BeginUpload();
 			}
 			else
 			{
@@ -297,7 +297,7 @@ public class scrNodeMaster : MonoBehaviour
 		}
 
 		// Set the size of the core based on the change_size of the message.
-		int coreSize = Mathf.Min (Mathf.CeilToInt(Mathf.Log10 (Mathf.Abs (message.change_size) + 2) * 3), scrNode.CORE_SIZE_MAX);
+		int coreSize = Mathf.Clamp (Mathf.CeilToInt(Mathf.Log10 (Mathf.Abs (message.change_size) + 1)), scrNode.CORE_SIZE_MIN, scrNode.CORE_SIZE_MAX);
 
 		// Get the number of cubes there would be around this core.
 		int numCubes = scrNode.CubePositions[coreSize - 1].Length;
@@ -321,7 +321,7 @@ public class scrNodeMaster : MonoBehaviour
 			for (int i = 0; i < TOTAL_NODES - inactiveNodeCount; ++i)
 			{
 				// Don't replace the node being uploaded.
-				if (n.Value == NodeBeingUploaded.gameObject)
+				if (NodeBeingUploaded != null && n.Value == NodeBeingUploaded.gameObject)
 					continue;
 
 				Vector2 position = n.Value.transform.position;
@@ -350,7 +350,7 @@ public class scrNodeMaster : MonoBehaviour
 
 		// Activate, position and initialise the node.
 		ActivateNode(node);
-		node.Value.transform.position = GetRandomFreePosition();
+		node.Value.transform.position = PopRandomFreePosition();
 		scrNode nodeScript = node.Value.GetComponent<scrNode>();
 		nodeScript.Init(node, message, coreSize, infected);
 		FreeCells[ToCellSpace(nodeScript.transform.position.x), ToCellSpace(nodeScript.transform.position.y)] = false;
@@ -408,7 +408,7 @@ public class scrNodeMaster : MonoBehaviour
 	public void CreateLinks(LinkedListNode<GameObject> node)
 	{
 		scrNode nodeScript = node.Value.GetComponent<scrNode>();
-		Bounds nodeBounds = new Bounds(node.Value.transform.position, new Vector3(CELL_SIZE * 4, CELL_SIZE * 4, CELL_SIZE * 4));	// Instead, could look for nodes at the adjacent positions of positions array.
+		Bounds nodeBounds = new Bounds(node.Value.transform.position, new Vector3(CELL_SIZE * 2, CELL_SIZE * 2, CELL_SIZE * 2));	// Instead, could look for nodes at the adjacent positions of positions array, derp.
 		LinkedList<GameObject>.Enumerator activeNode = nodePool.GetEnumerator();
 		for (int i = 0; i < inactiveNodeCount; ++i)
 			activeNode.MoveNext();
@@ -443,6 +443,8 @@ public class scrNodeMaster : MonoBehaviour
 		nodePool.Remove (node);
 		nodePool.AddFirst(node);
 		++inactiveNodeCount;
+
+
 	}
 
 	void ActivateCube(LinkedListNode<GameObject> cube)
@@ -461,7 +463,33 @@ public class scrNodeMaster : MonoBehaviour
 		++inactiveCubeCount;
 	}
 
-	Vector3 GetRandomFreePosition()
+	public Vector3 GetRandomFreePosition(bool excludeUserVision)
+	{
+		if (excludeUserVision)
+		{
+			// Loop through all free positions, starting at a random position, and get the first one found to be out of view.
+			int index = Random.Range (0, freePositionsCount);
+			for (int i = 0; i < freePositionsCount; ++i)
+			{
+				Vector2 p = positions[index];
+				Vector2 topLeft = Camera.main.ScreenToWorldPoint(Vector2.zero);
+				Vector2 bottomRight = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
+				
+				// Find out if the position is out of view.
+				if (p.x + CELL_SIZE * 0.5f < topLeft.x || p.x - CELL_SIZE * 0.5f > bottomRight.x ||
+				    p.y + CELL_SIZE * 0.5f < topLeft.y || p.y - CELL_SIZE * 0.5f > bottomRight.y)
+					return p;
+
+				++index;
+				if (index == freePositionsCount)
+					index = 0;
+			}
+		}
+		
+		return positions[Random.Range(0, freePositionsCount)];
+	}
+
+	Vector3 PopRandomFreePosition()
 	{
 		// Get a random free position.
 		int index = Random.Range (0, freePositionsCount);

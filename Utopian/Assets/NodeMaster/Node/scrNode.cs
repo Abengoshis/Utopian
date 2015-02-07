@@ -27,11 +27,11 @@ public class scrNode : MonoBehaviour
 					continue;
 
 				// Set the position with the i, j coordinates.
-				positions[cube] = new Vector3(x, y) - (Vector3)Vector2.one * (shell - 1) * 0.5f;
+				positions[cube] = new Vector3(x, y) * 2 - (Vector3)Vector2.one * (shell - 1);
 
 
-				// Push the position out from the radius to give each cube separation from its neighbours, and to round the node.
-				positions[cube] += positions[cube] * 0.25f + positions[cube].normalized * core * 0.25f;
+				// Push the position out from the radius to give each cube separation from its neighbours.
+				//positions[cube] += positions[cube] * 0.5f;
 			
 				++cube;
 			}
@@ -42,12 +42,13 @@ public class scrNode : MonoBehaviour
 
 	public static int CalculateCubeCount(int coreSize)
 	{
-		return (coreSize * 3) * (coreSize * 3) - coreSize * coreSize;;
+		return (coreSize * 3) * (coreSize * 3) - (coreSize) * (coreSize);
 	}
-	
+
+	public const int CORE_SIZE_MIN = 2;
 	public const int CORE_SIZE_MAX = 4;
 	public const float PULSE_DELAY_MAX = 10.0f;
-	public const int LINKS_MAX = 24;	// Number of links possible (also the number of 2d positions in a grid around one position.
+	public const int LINKS_MAX = 8;	// Number of links possible (also the number of 2d positions in a grid around one position.
 	public const int LINK_VERTICES = 8;
 	const int LOOPS_PER_FRAME = 50;	// Number of loops allowed per frame of a coroutine before yielding.
 	const string DELETED_TAG = "  <td class=\"diff-deletedline\"><div>";
@@ -75,7 +76,8 @@ public class scrNode : MonoBehaviour
 
 	string[] words = new string[0];
 	int wordIndex = 0;
-	float spawnDelay = 4.0f;
+	float spawnDelay = 10.0f;
+	float spawnDelayPerCharacter = 5.0f;
 	float spawnTimer = 0;
 
 	float expandDuration = 2.0f;
@@ -83,32 +85,24 @@ public class scrNode : MonoBehaviour
 
 	bool ready = false;
 
-	float damageTimer = 0;
-	float damageToDestroy = 20;
-	Material currentMaterial;
-
-	float uploadDuration = 0;
-	float uploadTimer = 0;
-
 //	public List<scrEnemy> Enemies { get; private set; }
 
 	public GameObject ChildCore { get; private set; }
-	public GameObject ChildSpark { get; private set; }
+	public GameObject ChildInfo { get; private set; }
+	public GameObject[] ChildData { get; private set; }
 	public GameObject ExplosionPrefab;
 
 	public void Init(LinkedListNode<GameObject> node, Message data, int coreSize, bool infected)
 	{
+		if (coreSize == 0)
+			Debug.Log ("WHAT");
+
 		ready = false;
 		Node = node;
 		Data = data;
 		Uploading = false;
-		uploadTimer = 0;
-		uploadDuration = coreSize;
 
 		infectionPulseTimer = 0.0f;
-
-		damageTimer = 0;
-
 		spawnTimer = 0.0f;
 		wordIndex = 0;
 
@@ -120,6 +114,7 @@ public class scrNode : MonoBehaviour
 			links[i].enabled = false;
 			linkExpandTimers[i] = 0.0f;
 		}
+		expandTimer = 0;
 
 		//transform.rotation = Random.rotation;
 		transform.localScale = Vector3.zero;
@@ -131,7 +126,20 @@ public class scrNode : MonoBehaviour
 		cubePositionIndex = 0;
 		Cubes = new LinkedListNode<GameObject>[cubePositionEnumerator.Current.Length];
 
+		// Set the size of the core.
 		ChildCore.transform.localScale = new Vector3(coreSize, coreSize, coreSize);
+
+		// Set the distance of the infos based on the core size.
+		ChildData[0].transform.localPosition = new Vector3(0, coreSize * 4, 0);
+		ChildData[1].transform.localPosition = new Vector3(coreSize * 4, 0, 0);
+		ChildData[2].transform.localPosition = new Vector3(0, -coreSize * 4, 0);
+		ChildData[3].transform.localPosition = new Vector3(-coreSize * 4, 0, 0);
+
+		// Set the data of the infos.
+		ChildData[0].GetComponent<TextMesh>().text = Data.page_title;
+		ChildData[1].GetComponent<TextMesh>().text = "User: " + Data.user;
+		ChildData[2].GetComponent<TextMesh>().text = "Altered: " + (Data.change_size > 0 ? ("+" + Data.change_size.ToString()) : Data.change_size.ToString()) + " Bytes";
+		ChildData[3].GetComponent<TextMesh>().text = "Edited Time: " + Data.time;
 
 		FullyInfected = infected;
 		Infected = infected;
@@ -145,13 +153,11 @@ public class scrNode : MonoBehaviour
 			infectionPulseDelay = PULSE_DELAY_MAX * (1 - (coreSize - 1) / CORE_SIZE_MAX);
 			infectedCubeCount = Cubes.Length;
 			ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreInfected;
-			currentMaterial = new Material(ChildCore.renderer.material);
 		}
 		else
 		{
 			infectedCubeCount = 0;
 			ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreUninfected;
-			currentMaterial = new Material(ChildCore.renderer.material);
 		}
 
 		totalCubeCount = Cubes.Length;
@@ -177,22 +183,28 @@ public class scrNode : MonoBehaviour
 		++cubePositionIndex;
 	}
 
-	public void RemoveCube(GameObject cube)
+	public void RemoveCube(LinkedListNode<GameObject> cube)
 	{
 		for (int i = 0; i < Cubes.Length; ++i)
 		{
-			if (Cubes[i] != null)
+			if (Cubes[i] == cube)
 			{
-				if (Cubes[i].Value == cube)
+				scrCube cubeScript = Cubes[i].Value.GetComponent<scrCube>();
+
+				// Tell the gui which thing was destroyed.
+				scrGUI.Instance.AddToFeed("DEL frag[" + (int)cubePositionEnumerator.Current[i].x + "," + (int)cubePositionEnumerator.Current[i].y + ")" + (cubeScript.Infected ? "-INFECTED" : "-CLEAN"));
+
+				if (cubeScript.Infected)
 				{
-					// Tell the gui which thing was destroyed.
-					scrGUI.Instance.AddToFeed("DEL mem[\"" + Data.page_title + "\"](" + (int)cubePositionEnumerator.Current[i].x + "," + (int)cubePositionEnumerator.Current[i].y + ")" + (Cubes[i].Value.GetComponent<scrCube>().Infected ? "-INFECTED" : "-CLEAN"));
-
-
-					scrNodeMaster.Instance.DeactivateCube(Cubes[i]);
-					Cubes[i] = null;
-					--totalCubeCount;
+					--infectedCubeCount;
+					if (infectedCubeCount == 0)
+						Infected = false;
 				}
+
+				scrNodeMaster.Instance.DeactivateCube(cube);
+				Cubes[i] = null;
+				--totalCubeCount;
+				return;
 			}
 		}
 	}
@@ -216,42 +228,39 @@ public class scrNode : MonoBehaviour
 	{
 		Infected = true;
 
-		if (infectedCubeCount + count >= totalCubeCount)
+		for (int i = 0, infect = 0; i < Cubes.Length && infect < count; ++i)
 		{
-			count -= infectedCubeCount + count - totalCubeCount;
-			FullyInfected = true;
-
-			// Read the text.
-			StartCoroutine(Parse ());
-
-			// Set the infected materials.
-			ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreInfected;
-			currentMaterial.CopyPropertiesFromMaterial(ChildCore.renderer.material);
-
-			scrNodeMaster.Instance.CreateLinks(Node);
-		}
-
-		if (infectedCubeCount != Cubes.Length)
-		{
-			for (int i = infectedCubeCount; i < infectedCubeCount + count; ++i)
+			if (Cubes[i] != null && !Cubes[i].Value.GetComponent<scrCube>().Infected)
 			{
-				if (Cubes[i] != null)
-					Cubes[i].Value.GetComponent<scrCube>().Infect();
+				Cubes[i].Value.GetComponent<scrCube>().Infect();
+				++infect;
+				++infectedCubeCount;
 			}
 		}
 
-		infectedCubeCount += count;
+		if (infectedCubeCount == totalCubeCount)
+		{
+			FullyInfected = true;
+			
+			// Read the text.
+			StartCoroutine(Parse ());
+			
+			// Set the infected materials.
+			ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreInfected;
+			
+			scrNodeMaster.Instance.CreateLinks(Node);
+		}
 	}
 
 	void InfectLinkedNodes()
 	{
 		for (int i = 0; i < CurrentLinks; ++i)
 		{
-			// Get the chess distance to the nodes.
-			int chess = Mathf.Max ((int)Mathf.Abs ((linkedNodes[i].transform.position.x - transform.position.x) / scrNodeMaster.CELL_SIZE),
-			                       (int)Mathf.Abs (linkedNodes[i].transform.position.y - transform.position.y) / scrNodeMaster.CELL_SIZE);
+			// Get the chess distance to the nodes. (REDUNDANT NOW CAN ONLY INFECT ADJACENT NODES!)
+			//int chess = Mathf.Max ((int)Mathf.Abs ((linkedNodes[i].transform.position.x - transform.position.x) / scrNodeMaster.CELL_SIZE),
+			                   //    (int)Mathf.Abs (linkedNodes[i].transform.position.y - transform.position.y) / scrNodeMaster.CELL_SIZE);
 
-			linkedNodes[i].GetComponent<scrNode>().Infect(Mathf.CeilToInt((infectedCubeCount * 0.1f) / chess));
+			linkedNodes[i].GetComponent<scrNode>().Infect(Mathf.CeilToInt((infectedCubeCount * 0.1f)));
 			links[i].SetColors(scrNodeMaster.ColCoreInfected, Color.Lerp(scrNodeMaster.ColCoreUninfected, scrNodeMaster.ColCoreInfected, linkedNodes[i].GetComponent<scrNode>().GetInfectionAmount()));
 		}
 	}
@@ -386,6 +395,9 @@ public class scrNode : MonoBehaviour
 		string[] strippedWords = (new string(stripped, 0, length)).Split(split, System.StringSplitOptions.RemoveEmptyEntries);
 		List<string> whitespaceRemoved = new List<string>();
 
+		foreach (string titleWord in Data.page_title.Split(split, System.StringSplitOptions.RemoveEmptyEntries))
+			whitespaceRemoved.Add(titleWord);
+
 		numLoops = 0;
 
 		for (int i = 0; i < strippedWords.Length; ++i)
@@ -419,36 +431,44 @@ public class scrNode : MonoBehaviour
 			{
 				// Choose which enemy to make.
 
-				// Word enemy.
-				//scrWordEnemy enemy = ((GameObject)Instantiate(scrEnemyMaster.Instance.WordEnemyPrefab, transform.position, transform.rotation)).GetComponent<scrWordEnemy>();
+				// First, choose if a random enemy will be made or a specific one. Specific enemies depend on word length.
 
-				++wordIndex;
-				if (wordIndex >= words.Length)
-					wordIndex = 0;
+				// Choose an enemy based on word type.
+				if (scrEnemyMaster.Instance.Connectives.Contains(words[wordIndex])) // Connective enemy.
+				{
 
-				//enemy.Init (gameObject, words[wordIndex]);
+				}
 
+				// Choose an enemy based on word length.
+				if (words[wordIndex].Length > 6) // 6+ letter enemy.
+				{
+					scrSnakeEnemy snake = ((GameObject)Instantiate (scrEnemyMaster.Instance.SnakeEnemyPrefab, transform.position, Quaternion.identity)).GetComponent<scrSnakeEnemy>();
+					snake.Name = words[wordIndex];
+					snake.Init ();
+				}
+				else if (words[wordIndex].Length > 3) // 4->6 letter enemy.
+				{
 
-				//Enemies.Add(enemy);
+				}
+				else if (words[wordIndex].Length > 1) // 2->3 letter enemy.
+				{
+
+				}
+				else // Character enemy.
+				{
+
+				}
 
 				++wordIndex;
 				if (wordIndex == words.Length)
 					wordIndex = 0;
+
+				// Set the spawn delay based on the amount of letters in the word.
+				spawnDelay = spawnDelayPerCharacter * words[wordIndex].Length;
 			}
 
 			spawnTimer = 0;
 		}
-	}
-
-	public void CheckEnemies()
-	{
-		//for (int i = Enemies.Count - 1; i >= 0; --i)
-		//{
-		//	if (Enemies[i] == null)
-		//	{
-			//	Enemies.RemoveAt(i);
-		//	}
-		//}
 	}
 
 	public float GetInfectionAmount()
@@ -464,7 +484,12 @@ public class scrNode : MonoBehaviour
 	{
 		//Enemies = new List<scrEnemy>();
 		ChildCore = transform.Find ("Core").gameObject;
-		ChildSpark = transform.Find ("Spark").gameObject;
+		ChildInfo = transform.Find ("Info").gameObject;
+		ChildData = new GameObject[4];
+		ChildData[0] = ChildInfo.transform.Find ("PageTitle").gameObject;
+		ChildData[1] = ChildInfo.transform.Find ("User").gameObject;
+		ChildData[2] = ChildInfo.transform.Find ("ChangeSize").gameObject;
+		ChildData[3] = ChildInfo.transform.Find ("Time").gameObject;
 
 		for (int i = 0; i < LINKS_MAX; ++i)
 		{
@@ -505,10 +530,37 @@ public class scrNode : MonoBehaviour
 		}
 		else
 		{
+			// Rotate stuff.
+			float dRot = (Data.change_size >= 0 ? 1 : -1) * Time.deltaTime * 60 / (ChildCore.transform.localScale.x * ChildCore.transform.localScale.x);
+			ChildInfo.transform.Rotate(Vector3.forward, dRot);
+
+			// Also check for destruction, but otherwise keep rotating.
+			bool allDestroyed = true;
+			for (int i = 0; i < Cubes.Length; ++i)
+			{
+				if (Cubes[i] != null)
+				{
+					Cubes[i].Value.transform.RotateAround(transform.position, Vector3.forward, dRot);
+					allDestroyed = false;
+				}
+			}
+
+			// Destroy if necessar.
+			if (allDestroyed)
+			{
+				if (!Uploading)
+					scrGUI.Instance.AddToFeed("DEL mem[" + Data.page_title + "]");
+
+				GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, transform.position, Quaternion.identity);
+				explosion.particleSystem.startColor = Color.Lerp (ChildCore.renderer.material.color, Color.white, 0.5f);
+
+				scrNodeMaster.Instance.DeactivateNode(Node);
+				return;
+			}
+
 			if (FullyInfected)
 			{
-				//SpawnEnemies();
-				//CheckEnemies();
+				SpawnEnemies();
 
 				// Clear redundant links and animate current links.
 				float halfLinkExpandDuration = linkExpandDuration * 0.5f;
@@ -571,100 +623,49 @@ public class scrNode : MonoBehaviour
 				if (infectionAmount > 0)
 				{
 					ChildCore.renderer.material.color = Color.Lerp (scrNodeMaster.ColCoreUninfected, scrNodeMaster.ColCoreInfected, infectionAmount);
-					currentMaterial.CopyPropertiesFromMaterial(ChildCore.renderer.material);
 				}
-			}
-		}
 
-
-		// Damage control.
-		if (damageTimer > damageToDestroy)
-		{
-			scrGUI.Instance.AddToFeed("DEL mem[\"" + Data.page_title + "\"]-" + (Infected ? (GetInfectionAmount() * 100) + "% INFECTED" : "CLEAN"));
-
-			GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, transform.position, Quaternion.identity);
-			explosion.particleSystem.startColor = currentMaterial.color;
-
-			for (int i = 0; i < Cubes.Length; ++i)
-			{
-				if (Cubes[i] != null)
+				bool allInfected = true;
+				for (int i = 0; i < Cubes.Length; ++i)
 				{
-					scrNodeMaster.Instance.DeactivateCube(Cubes[i]);
+					if (Cubes[i] != null && !Cubes[i].Value.GetComponent<scrCube>().Infected)
+					    allInfected = false;
 				}
-			}
+				if (allInfected)
+					Infect (0);
 
-			scrNodeMaster.Instance.DeactivateNode(Node);
-		}
-		else
-		{
-			if (damageTimer < 0)
-			{
-				damageTimer = 0;
-				
-				ChildCore.renderer.material = currentMaterial;
-			}
-			else if (damageTimer > 0)
-			{
-				damageTimer -= 2 * Time.deltaTime;
-
-				ChildCore.renderer.material.color = Color.Lerp(currentMaterial.color, Color.white, damageTimer / damageToDestroy);
 			}
 		}
-
-		// If uploading, run the upload timer.
-		if (Uploading)
-		{
-			uploadTimer += Time.deltaTime;
-			if (uploadTimer >= uploadDuration)
-			{
-				// End the upload.
-				StartCoroutine(EndUpload());
-				Uploading = false;
-			}
-			ChildCore.renderer.material.color = Color.Lerp (currentMaterial.color, Color.white, uploadTimer/uploadDuration);
-		}
-
 	}
 
-	public void BeginUpload()
-	{
-		Uploading = true;
-	}
-
-	IEnumerator EndUpload()
+	public IEnumerator Upload()
 	{		
+		scrGUI.Instance.AddToFeed("UP mem[" + Data.page_title + "]" + (FullyInfected ? "-INFECTED" : Infected ? "-PART INFECTED" : "CLEAN"));
+		Uploading = true;
+
 		// "Upload" all cubes over time.
 		for (int i = 0; i < Cubes.Length; ++i)
 		{
 			if (Cubes[i] != null)
 			{
+				scrGUI.Instance.AddToFeed("UP frag[" + (int)cubePositionEnumerator.Current[i].x + "," + (int)cubePositionEnumerator.Current[i].y + ")" + (Cubes[i].Value.GetComponent<scrCube>().Infected ? "-INFECTED" : "-CLEAN"));
+
 				Cubes[i].Value.GetComponent<scrCube>().Upload();
 				Cubes[i] = null;
-				yield return new WaitForSeconds(0.2f);
+				yield return new WaitForSeconds(0.5f);
 			}
 		}
 
-		// Finally, deactivate the node.
-		scrNodeMaster.Instance.DeactivateNode(Node);
+		Uploading = false;
+		scrAICore.Instance.ArmLocked = false;
 	}
 
-	void OnGUI()
+	/*void OnGUI()
 	{
 		string text = Data.time + System.Environment.NewLine + "PAGE: " + Data.page_title + System.Environment.NewLine + "USER: " + Data.user +
 					  System.Environment.NewLine + "EDIT: " + Data.change_size.ToString() + " bytes";
 
 		scrGUI.Instance.DrawOutlinedText(text, Camera.main.WorldToViewportPoint(transform.position), Color.white, Color.black, 1);
 
-	}
-
-	void OnCollisionEnter(Collision c)
-	{
-		if (c.gameObject.layer == LayerMask.NameToLayer("PBullet"))
-		{
-			scrBullet bullet = c.gameObject.GetComponent<scrBullet>();
-			damageTimer += bullet.Damage;
-			ChildSpark.transform.forward = -bullet.Direction;
-			ChildSpark.particleSystem.Emit (10);
-		}
-	}
+	}*/
 }
