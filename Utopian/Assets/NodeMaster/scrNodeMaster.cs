@@ -86,7 +86,7 @@ public class scrNodeMaster : MonoBehaviour
 				}
 			}
 
-			nodePoolLoaded = true;
+			//nodePoolLoaded = true;  The gameobjects unfortunately get destroyed, so keeping them throughout levels is impossible.
 		}
 	}
 
@@ -123,7 +123,7 @@ public class scrNodeMaster : MonoBehaviour
 				}
 			}
 
-			cubePoolLoaded = true;
+		//	cubePoolLoaded = true;
 		}
 	}
 

@@ -100,6 +100,11 @@ public class scrWebSocketClient : MonoBehaviour
 		client.Connect();
 	}
 
+	public void Close()
+	{
+		client.Close();
+	}
+
 	void OnDestroy()
 	{
 		client.Close();

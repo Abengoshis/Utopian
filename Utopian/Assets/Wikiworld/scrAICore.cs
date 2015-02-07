@@ -64,7 +64,7 @@ public class scrAICore : MonoBehaviour
 				else
 				{
 					// Rotate so that the arms align with the node.
-					transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0, 0, rotation), 50 * Time.deltaTime);
+					transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0, 0, rotation), 30 * Time.deltaTime);
 				}
 			}
 			else if (!scrNodeMaster.Instance.NodeBeingUploaded.Uploading)
