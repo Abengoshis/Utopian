@@ -8,6 +8,9 @@ public class scrBullet : MonoBehaviour
 		STANDARD
 	}
 
+	public GameObject ExplosionPrefab;
+
+	public bool Visible { get; private set; }
 	public bool Expired { get; private set; }
 	public bool ExpireWhenNotVisible = false;
 
@@ -28,9 +31,11 @@ public class scrBullet : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
+		Visible = !Expired && GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(Camera.main), collider.bounds);
+
 		transform.right = Direction;
 
-		if (ExpireWhenNotVisible && !GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(Camera.main), collider.bounds))	
+		if (ExpireWhenNotVisible && !Visible)	
 			Expired = true;
 
 		if (updateBehaviour != null)
@@ -45,6 +50,12 @@ public class scrBullet : MonoBehaviour
 
 	void OnCollisionEnter(Collision c)
 	{
+		if (Visible)
+		{
+			GameObject explosion = (GameObject)Instantiate(ExplosionPrefab, transform.position, Quaternion.identity);
+			explosion.transform.forward = -Direction;
+		}
+
 		Expired = true;
 	}
 
@@ -54,6 +65,7 @@ public class scrBullet : MonoBehaviour
 		ExpireWhenNotVisible = expireWhenNotVisible;
 		transform.position = position;
 		Direction = direction;
+		transform.forward = direction;
 		Speed = speed;
 		Damage = damage;
 

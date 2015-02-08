@@ -7,15 +7,19 @@ public class scrNode : MonoBehaviour
 	public static List<Vector3[]> CubePositions { get; private set; }	// All cube positions for each possible core size, precalculated. 
 
 	/// <summary>
-	/// Precomputes all local positions of cubes for each allowed size of core to reduce compuation during the game.
+	/// Precomputes all local positions of cubes for each allowed size of core to reduce computation during the game.
 	/// </summary>
 	public static void PrecomputeCubePositions()
 	{
+		if (CubePositions != null)
+			return;
+
 		CubePositions = new List<Vector3[]>();
 
 		for (int core = 1; core <= CORE_SIZE_MAX; ++core)
 		{
-			Vector3[] positions = new Vector3[CalculateCubeCount(core)];
+			int cubeCount = CalculateCubeCount(core);
+			List<Vector3> positions = new List<Vector3>();
 
 			for (int i = 0, cube = 0, shell = core * 3; i < shell * shell; ++i)
 			{
@@ -27,7 +31,7 @@ public class scrNode : MonoBehaviour
 					continue;
 
 				// Set the position with the i, j coordinates.
-				positions[cube] = new Vector3(x, y) * 2 - (Vector3)Vector2.one * (shell - 1);
+				positions.Add(new Vector3(x, y) * 2 - (Vector3)Vector2.one * (shell - 1));
 
 
 				// Push the position out from the radius to give each cube separation from its neighbours.
@@ -36,7 +40,26 @@ public class scrNode : MonoBehaviour
 				++cube;
 			}
 
-			CubePositions.Add(positions);
+			// Reorder the positions so that the outermost ones are first.
+			Vector3[] reorderedPositions = new Vector3[cubeCount];
+			for (int i = 0; i < cubeCount; ++i)
+			{
+				Vector3 furthestPosition = Vector3.zero;
+				float furthestDistance = 0;
+				for (int j = 0; j < positions.Count; ++j)
+				{
+					float distance = positions[j].magnitude;
+					if (distance > furthestDistance)
+					{
+						furthestDistance = distance;
+						furthestPosition = positions[j];
+					}
+				}
+				positions.Remove(furthestPosition);
+				reorderedPositions[i] = furthestPosition;
+			}
+
+			CubePositions.Add(reorderedPositions);
 		}
 	}
 
@@ -126,8 +149,8 @@ public class scrNode : MonoBehaviour
 		cubePositionIndex = 0;
 		Cubes = new LinkedListNode<GameObject>[cubePositionEnumerator.Current.Length];
 
-		// Set the size of the core.
 		ChildCore.transform.localScale = new Vector3(coreSize, coreSize, coreSize);
+		ChildInfo.transform.rotation = Quaternion.identity;
 
 		// Set the distance of the infos based on the core size.
 		ChildData[0].transform.localPosition = new Vector3(0, coreSize * 4, 0);
@@ -249,6 +272,12 @@ public class scrNode : MonoBehaviour
 			ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreInfected;
 			
 			scrNodeMaster.Instance.CreateLinks(Node);
+
+			scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = 3;
+		}
+		else
+		{
+			scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = 2;
 		}
 	}
 
@@ -260,7 +289,7 @@ public class scrNode : MonoBehaviour
 			//int chess = Mathf.Max ((int)Mathf.Abs ((linkedNodes[i].transform.position.x - transform.position.x) / scrNodeMaster.CELL_SIZE),
 			                   //    (int)Mathf.Abs (linkedNodes[i].transform.position.y - transform.position.y) / scrNodeMaster.CELL_SIZE);
 
-			linkedNodes[i].GetComponent<scrNode>().Infect(Mathf.CeilToInt((infectedCubeCount * 0.1f)));
+			linkedNodes[i].GetComponent<scrNode>().Infect(Mathf.CeilToInt((infectedCubeCount * 0.05f)));
 			links[i].SetColors(scrNodeMaster.ColCoreInfected, Color.Lerp(scrNodeMaster.ColCoreUninfected, scrNodeMaster.ColCoreInfected, linkedNodes[i].GetComponent<scrNode>().GetInfectionAmount()));
 		}
 	}
@@ -554,6 +583,7 @@ public class scrNode : MonoBehaviour
 				GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, transform.position, Quaternion.identity);
 				explosion.particleSystem.startColor = Color.Lerp (ChildCore.renderer.material.color, Color.white, 0.5f);
 
+				scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = 0;
 				scrNodeMaster.Instance.DeactivateNode(Node);
 				return;
 			}
@@ -652,12 +682,11 @@ public class scrNode : MonoBehaviour
 
 				Cubes[i].Value.GetComponent<scrCube>().Upload();
 				Cubes[i] = null;
-				yield return new WaitForSeconds(0.5f);
+				yield return new WaitForSeconds(1.0f);
 			}
 		}
 
 		Uploading = false;
-		scrAICore.Instance.ArmLocked = false;
 	}
 
 	/*void OnGUI()

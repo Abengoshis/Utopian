@@ -34,6 +34,7 @@ public class scrEnemyMaster : MonoBehaviour
 
 			// Instantiate a user enemy at a free position outside the user's vision.
 			scrUserEnemy userEnemy = ((GameObject)Instantiate(UserEnemyPrefab, scrNodeMaster.Instance.GetRandomFreePosition(true), Quaternion.identity)).GetComponent<scrUserEnemy>();
+			userEnemy.Name = message.user;
 			userEnemy.Init();
 		}
 	}

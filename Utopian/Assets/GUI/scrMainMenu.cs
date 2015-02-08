@@ -5,6 +5,9 @@ public class scrMainMenu : MonoBehaviour
 {
 	public GameObject Grid;
 
+	public AudioClip SndButtonPress;
+
+	
 	// Use this for initialization
 	void Start ()
 	{

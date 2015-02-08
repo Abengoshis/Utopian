@@ -27,9 +27,9 @@ public class scrMaster : MonoBehaviour
 	{
 		if (Input.GetButton("Cancel"))
 		{
-			scrWebSocketClient.Instance.Close();
+			//scrWebSocketClient.Instance.Close();
 
-			Application.LoadLevel(0);
+			//Application.LoadLevel(0);
 		}
 
 		loading.transform.Find ("Text").transform.eulerAngles = new Vector3(0, 0, Mathf.Sin (Time.time) * 5);
@@ -87,6 +87,7 @@ public class scrMaster : MonoBehaviour
 
 		// Hide the loading screen.
 		loading.SetActive(false);
+		audio.Play();
 
 		Loading = false;
 	}

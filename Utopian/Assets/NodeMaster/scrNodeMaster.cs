@@ -27,8 +27,8 @@ public class scrNodeMaster : MonoBehaviour
 	static int freePositionsCount = 0;
 
 	public const int GRID_SIZE = 10;
-	public const int CELL_SIZE = 40;
-	public static bool[,] FreeCells { get; private set; }
+	public const int CELL_SIZE = 60;
+	public static int[,] CellStates;
 
 	#endregion
 
@@ -166,7 +166,7 @@ public class scrNodeMaster : MonoBehaviour
 
 		for (int i = 0; i < GRID_SIZE; ++i)
 			for (int j = 0; j < GRID_SIZE; ++j)
-				FreeCells[i, j] = true;
+				CellStates[i, j] = 0;
 	}
 
 	#endregion
@@ -205,10 +205,10 @@ public class scrNodeMaster : MonoBehaviour
 		ColCoreUninfected = MatCoreUninfected.color;
 		ColCoreInfected = MatCoreInfected.color;
 
-		FreeCells = new bool[GRID_SIZE, GRID_SIZE];
+		CellStates = new int[GRID_SIZE, GRID_SIZE];
 		for (int i = 0; i < GRID_SIZE; ++i)
 			for (int j = 0; j < GRID_SIZE; ++j)
-				FreeCells[i, j] = true;
+				CellStates[i, j] = 0;
 
 		// Disable. Reenabled by the master.
 		enabled = false;
@@ -353,7 +353,7 @@ public class scrNodeMaster : MonoBehaviour
 		node.Value.transform.position = PopRandomFreePosition();
 		scrNode nodeScript = node.Value.GetComponent<scrNode>();
 		nodeScript.Init(node, message, coreSize, infected);
-		FreeCells[ToCellSpace(nodeScript.transform.position.x), ToCellSpace(nodeScript.transform.position.y)] = false;
+		CellStates[ToCellSpace(nodeScript.transform.position.x), ToCellSpace(nodeScript.transform.position.y)] = infected ? 3 : 1;
 
 		// Assign cubes to the node.
 		LinkedListNode<GameObject> cube = cubePool.First;
@@ -388,7 +388,7 @@ public class scrNodeMaster : MonoBehaviour
 	public IEnumerator Destroy(LinkedListNode<GameObject> node)
 	{
 		scrNode nodeScript = node.Value.GetComponent<scrNode>();
-		FreeCells[ToCellSpace(nodeScript.transform.position.x), ToCellSpace(nodeScript.transform.position.y)] = true;
+		CellStates[ToCellSpace(nodeScript.transform.position.x), ToCellSpace(nodeScript.transform.position.y)] = 0;
 
 		// Clear and reset the nodes cubes and make them available to future nodes.
 		for (int i = 0, numLoops = 0; i < nodeScript.Cubes.Length; ++i)

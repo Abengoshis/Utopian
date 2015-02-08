@@ -66,6 +66,7 @@
      <Compile Include="Assets\scrWebSocketClient.cs" />
      <None Include="Assets\NodeMaster\Cube\shdCube.shader" />
      <None Include="Assets\NodeMaster\shdGrid.shader" />
+     <None Include="Assets\GUI\shdMap.shader" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files (x86)/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/4.6.1/UnityEngine.UI.dll</HintPath>
  </Reference>

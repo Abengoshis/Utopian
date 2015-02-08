@@ -48,7 +48,7 @@ public class scrPathfinder : MonoBehaviour
 			GridPosition = ((Vector2)transform.position + Vector2.one * scrNodeMaster.GRID_SIZE * scrNodeMaster.CELL_SIZE * 0.5f) / scrNodeMaster.CELL_SIZE;
 			Vector2 snapPosition = scrNodeMaster.ToCellSpace(transform.position);
 
-			if (gameObject.layer != LayerMask.NameToLayer("Cube") && !scrNodeMaster.FreeCells[(int)snapPosition.x, (int)snapPosition.y])
+			if (gameObject.layer != LayerMask.NameToLayer("Cube") && scrNodeMaster.CellStates[(int)snapPosition.x, (int)snapPosition.y] > 0)
 			{
 				NextGridPosition = snapPosition;
 			}
@@ -82,9 +82,9 @@ public class scrPathfinder : MonoBehaviour
 			movement = 0;
 			GridPosition = NextGridPosition;
 		
-			// Check vertical and horizontal with the player.
-			bool horizontal = transform.position.x != Target.transform.position.x;
-			bool vertical = transform.position.y != Target.transform.position.y;
+			// Check vertical and horizontal with the target.
+			bool horizontal = (transform.position.x > Target.transform.position.x + 1.0f || transform.position.x < Target.transform.position.x - 1.0f);
+			bool vertical = (transform.position.y > Target.transform.position.y + 1.0f || transform.position.y < Target.transform.position.y - 1.0f);
 
 			// If both vertical and horizontal movement will be needed to get to the player, choose one or the other.
 			if (vertical && horizontal)

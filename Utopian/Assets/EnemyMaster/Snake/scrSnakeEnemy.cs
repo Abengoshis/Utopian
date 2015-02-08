@@ -10,7 +10,7 @@ public class scrSnakeEnemy : scrEnemy
 	private Vector2[] nextPositions;
 	private Vector2[] prevPositions;
 	private float spacingTimer = 0.0f;
-	private float spacingDelay = 0.15f;
+	private float spacingDelay = 0.1f;
 	private Vector2 prevHeadPosition;
 
 	private scrPathfinder pathfinder;
@@ -35,14 +35,29 @@ public class scrSnakeEnemy : scrEnemy
 		pathfinder.Target = scrPlayer.Instance.gameObject;
 		
 		DamageToDestroy = 30;
-		DestroyOnExpire = true;
+		DestroyOnExpire = false;
 	}
 	
 	// Update is called once per frame
 	protected override void Update ()
 	{
 		if (Expired)
+		{
+			// Destroy self.
+			if (ExplosionPrefab != null)
+			{
+				for (int i = 0; i < Segments.Length; ++i)
+				{
+					GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, Segments[i].transform.position, Quaternion.identity);
+					explosion.particleSystem.startColor = Color.Lerp (Segments[i].renderer.material.color, Color.white, 0.5f);
+					Destroy (Segments[i].gameObject);
+				}
+			}
+
+			// NOW destroy self.
+			Destroy (gameObject);
 			return;
+		}
 
 		if (Vector2.Distance(transform.position, scrPlayer.Instance.transform.position) < 50 && !Physics.Linecast(transform.position, scrPlayer.Instance.transform.position, 1 << LayerMask.NameToLayer("Node")))
 		{
@@ -82,7 +97,7 @@ public class scrSnakeEnemy : scrEnemy
 				if (Segments[i].enabled)
 				{
 					Segments[i].renderer.material.color = Color.black;
-					Segments[i].transform.localScale *= 0.25f;
+					Segments[i].transform.localScale *= 0.5f;
 					Segments[i].collider.enabled = false;
 					Segments[i].enabled = false;
 					Segments[i].GetComponentInChildren<TextMesh>().text = "";
@@ -93,23 +108,15 @@ public class scrSnakeEnemy : scrEnemy
 				allExpired = false;
 			}
 
-			// Vector2 direction = nextPositions[i] - prevPositions[i];
-			// Segments[i].transform.eulerAngles = new Vector3(0, 0, Mathf.Rad2Deg * Mathf.Atan2 (direction.y, direction.x));
+			Vector2 direction = nextPositions[i] - prevPositions[i];
+			Segments[i].transform.rotation = Quaternion.RotateTowards(Segments[i].transform.rotation, Quaternion.Euler(0, 0, Mathf.Rad2Deg * Mathf.Atan2 (direction.y, direction.x)), 180 * Time.deltaTime);
 			Segments[i].transform.position = Vector2.Lerp (prevPositions[i], nextPositions[i], spacingTimer / spacingDelay);
 		}
 
+		// If all segments are gone, destroy self.
 		if (allExpired)
 		{
 			damageTimer = DamageToDestroy;
-			if (ExplosionPrefab != null)
-			{
-				for (int i = 0; i < Segments.Length; ++i)
-				{
-					GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, Segments[i].transform.position, Quaternion.identity);
-					explosion.particleSystem.startColor = Color.Lerp (renderer.material.color, Color.white, 0.5f);
-					Destroy (Segments[i].gameObject);
-				}
-			}
 		}
 
 		base.Update();

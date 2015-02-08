@@ -24,6 +24,7 @@ public class scrPlayer : MonoBehaviour
 	float fireTimer = 0;
 	int fireMode = 0;
 
+	Vector3[] gunOffsets = new Vector3[] { new Vector3(3, 0.85f), new Vector3(3, -0.85f) };
 
 	void Start ()
 	{
@@ -90,9 +91,9 @@ public class scrPlayer : MonoBehaviour
 			if (fireTimer >= 1)
 			{
 				if (fireMode == 0)
-					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.position + transform.up * 0.7f + transform.right * 0.4f, transform.right, 80, 1, true);
+					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.TransformPoint(gunOffsets[0]), transform.right, 80, 1, true);
 				else
-					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.position - transform.up * 0.7f + transform.right * 0.4f, transform.right, 80, 1, true);
+					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.TransformPoint(gunOffsets[1]), transform.right, 80, 1, true);
 
 				fireMode = (fireMode == 0 ? 1 : 0);
 				fireTimer = 0;

@@ -68,7 +68,10 @@ public class scrEnemy : MonoBehaviour
 
 				float t = damageTimer / DamageToDestroy;
 				for(int i = 0; i < renderers.Length; ++i)
-					renderers[i].material.color = Color.Lerp (materials[i].color, Color.white, t);
+				{
+					if (renderers[i].material.HasProperty("_Color"))
+						renderers[i].material.color = Color.Lerp (materials[i].color, Color.white, t);
+				}
 
 			}
 		}

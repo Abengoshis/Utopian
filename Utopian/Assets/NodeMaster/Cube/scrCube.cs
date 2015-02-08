@@ -17,8 +17,6 @@ public class scrCube : MonoBehaviour
 	float damageTimer = 0;
 	float damageToDestroy = 2;
 
-	public GameObject ChildSpark { get; private set; }
-
 	scrPathfinder pathfinder;
 
 	// Set infect over time flag.
@@ -33,7 +31,6 @@ public class scrCube : MonoBehaviour
 		Infected = true;
 		infectionTransitionCompleted = true;
 		renderer.material = scrNodeMaster.Instance.MatCubeInfected;
-		ChildSpark.particleSystem.startColor = scrNodeMaster.ColCubeInfected;
 	}
 
 	public void Init(LinkedListNode<GameObject> cube, scrNode parent, Vector3 position, bool infected)
@@ -48,13 +45,11 @@ public class scrCube : MonoBehaviour
 		if (infected)
 		{
 			renderer.material = scrNodeMaster.Instance.MatCubeInfected;
-			ChildSpark.particleSystem.startColor = scrNodeMaster.ColCubeInfected;
 		}
 		else
 		{
 			infectionTransitionTimer = 0.0f;
 			renderer.material = scrNodeMaster.Instance.MatCubeUninfected;
-			ChildSpark.particleSystem.startColor = scrNodeMaster.ColCubeUninfected;
 		}
 
 		damageTimer = 0;
@@ -72,7 +67,6 @@ public class scrCube : MonoBehaviour
 	// Use this for initialization
 	void Start ()
 	{
-		ChildSpark = transform.Find ("Spark").gameObject;
 		pathfinder = GetComponent<scrPathfinder>();
 		pathfinder.Target = GameObject.Find ("AICore");
 		Init (null, null, Vector3.zero, false);
@@ -86,6 +80,8 @@ public class scrCube : MonoBehaviour
 			// While uploading (pathing towards the core) check if within the core.
 			if (transform.position.x < 10 && transform.position.x > -10 && transform.position.y < 10 && transform.position.y > -10)
 			{
+				scrAICore.Instance.Learn (Infected);
+
 				scrNodeMaster.Instance.DeactivateCube(Cube);
 				Uploading = false;
 				return;
@@ -103,7 +99,6 @@ public class scrCube : MonoBehaviour
 				{
 					infectionTransitionCompleted = true;
 					renderer.material = scrNodeMaster.Instance.MatCubeInfected;
-					ChildSpark.particleSystem.startColor = scrNodeMaster.ColCubeInfected;
 				}
 				else
 				{
@@ -150,9 +145,8 @@ public class scrCube : MonoBehaviour
 		if (c.gameObject.layer == LayerMask.NameToLayer("PBullet") || c.gameObject.layer == LayerMask.NameToLayer("EBullet"))
 		{
 			scrBullet bullet = c.gameObject.GetComponent<scrBullet>();
+		
 			damageTimer += bullet.Damage;
-			ChildSpark.transform.forward = -bullet.Direction;
-			ChildSpark.particleSystem.Emit (10);
 		}
 	}
 }

@@ -1,17 +1,15 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\GUI\scrMainMenu.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\NodeMaster\scrNodeMaster.cs">
     <Files>
-      <File FileName="Assets\GUI\scrMainMenu.cs" Line="11" Column="29" />
-      <File FileName="Assets\EnemyMaster\User\scrUserEnemy.cs" Line="92" Column="1" />
-      <File FileName="Assets\scrPathfinder.cs" Line="121" Column="1" />
-      <File FileName="Assets\NodeMaster\Node\scrNode.cs" Line="130" Column="57" />
-      <File FileName="Assets\EnemyMaster\scrEnemyMaster.cs" Line="46" Column="1" />
-      <File FileName="Assets\Wikiworld\scrAICore.cs" Line="67" Column="107" />
-      <File FileName="Assets\NodeMaster\Cube\scrCube.cs" Line="159" Column="1" />
-      <File FileName="Assets\NodeMaster\scrNodeMaster.cs" Line="89" Column="108" />
-      <File FileName="Assets\scrMaster.cs" Line="19" Column="81" />
-      <File FileName="Assets\EnemyMaster\scrEnemy.cs" Line="70" Column="29" />
+      <File FileName="Assets\GUI\shdMap.shader" Line="60" Column="44" />
+      <File FileName="Assets\scrCamera.cs" Line="44" Column="1" />
+      <File FileName="Assets\NodeMaster\scrNodeMaster.cs" Line="499" Column="24" />
+      <File FileName="Assets\NodeMaster\Node\scrNode.cs" Line="587" Column="49" />
+      <File FileName="Assets\scrWebSocketClient.cs" Line="77" Column="1" />
+      <File FileName="Assets\scrPathfinder.cs" Line="51" Column="131" />
+      <File FileName="Assets\EnemyMaster\User\scrUserEnemy.cs" Line="34" Column="62" />
+      <File FileName="Assets\Wikiworld\scrAICore.cs" Line="68" Column="152" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

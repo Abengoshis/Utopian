@@ -1,5 +1,5 @@
 Base path: C:/Program Files (x86)/Unity/Editor/Data
-Pipe name: \\.\pipe\UnityShaderCompiler-2-188556
+Pipe name: \\.\pipe\UnityShaderCompiler-2-190024
 Cmd: getPlatforms
 Cmd: compileSnippet
   error: 2 plat 1 at (0): Arithmetic instruction limit of 64 exceeded; 85 arithmetic instructions needed to compile program

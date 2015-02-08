@@ -12,6 +12,8 @@ public class scrUserEnemy : scrEnemy
 	
 	public override void Init()
 	{
+		GetComponentInChildren<TextMesh>().text = Name;
+
 		SiegeNode = null;
 
 		pathfinder = GetComponent<scrPathfinder>();
@@ -27,20 +29,22 @@ public class scrUserEnemy : scrEnemy
 		pathfinder.Resume();
 
 		// If sieging, shoot at the node.
-		if (SiegeNode != null)
+		if (SiegeNode != null && SiegeNode.Cubes != null)
 		{
-			if (!SiegeNode.gameObject.activeSelf)
+			if (!SiegeNode.gameObject.activeSelf || SiegeNode.Infected)
 			{
 				SiegeNode = null;
 				pathfinder.Target = scrPlayer.Instance.gameObject;
 				return;
 			}
 
+			if (targetCubeIndex >= SiegeNode.Cubes.Length)
+				targetCubeIndex = 0;
+
+			// Change cube if target cube is destroyed.
 			if (SiegeNode.Cubes[targetCubeIndex] == null)
 			{
 				++targetCubeIndex;
-				if (targetCubeIndex == SiegeNode.Cubes.Length)
-				    targetCubeIndex = 0;
 			}
 			else
 			{
