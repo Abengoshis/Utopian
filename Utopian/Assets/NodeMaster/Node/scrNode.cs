@@ -80,6 +80,7 @@ public class scrNode : MonoBehaviour
 	public Message Data { get; private set; }
 	public bool FullyInfected { get; private set; }
 	public bool Infected { get; private set; }
+	public bool Blocked { get { return !FullyInfected && Data.change_size <= 0; } }
 	public bool Uploading { get; private set; }
 	float infectionPulseDelay = 5.0f;
 	float infectionPulseTimer = 0.0f;
@@ -140,7 +141,7 @@ public class scrNode : MonoBehaviour
 		expandTimer = 0;
 
 		//transform.rotation = Random.rotation;
-		transform.localScale = Vector3.zero;
+		//transform.localScale = Vector3.zero;
 
 		// Get an enumerator to the list item containing the positions this node will use when being built.
 		cubePositionEnumerator = CubePositions.GetEnumerator();
@@ -180,7 +181,11 @@ public class scrNode : MonoBehaviour
 		else
 		{
 			infectedCubeCount = 0;
-			ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreUninfected;
+
+			if (Blocked)
+				ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreBlocked;
+			else
+				ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreUninfected;
 		}
 
 		totalCubeCount = Cubes.Length;
@@ -197,7 +202,7 @@ public class scrNode : MonoBehaviour
 	{
 		// Initialise the cube.
 		scrCube cubeScript = cube.Value.GetComponent<scrCube>();
-		cubeScript.Init (cube, this, transform.position, FullyInfected);
+		cubeScript.Init (cube, this, transform.position, FullyInfected ? scrCube.DataState.INFECTED : Blocked ? scrCube.DataState.BLOCKED : scrCube.DataState.CLEAN);
 
 		// Store the linked list node for this cube.
 		Cubes[cubePositionIndex] = cube;
@@ -215,9 +220,10 @@ public class scrNode : MonoBehaviour
 				scrCube cubeScript = Cubes[i].Value.GetComponent<scrCube>();
 
 				// Tell the gui which thing was destroyed.
-				scrGUI.Instance.AddToFeed("DEL frag[" + (int)cubePositionEnumerator.Current[i].x + "," + (int)cubePositionEnumerator.Current[i].y + ")" + (cubeScript.Infected ? "-INFECTED" : "-CLEAN"));
+				scrGUI.Instance.AddToFeed("DEL frag[" + (int)cubePositionEnumerator.Current[i].x + "," + (int)cubePositionEnumerator.Current[i].y + ")" +
+				                          (cubeScript.State == scrCube.DataState.INFECTED ? "-INFECTED" : cubeScript.State == scrCube.DataState.BLOCKED ? "-NULL" : "-CLEAN"));
 
-				if (cubeScript.Infected)
+				if (cubeScript.State == scrCube.DataState.INFECTED)
 				{
 					--infectedCubeCount;
 					if (infectedCubeCount == 0)
@@ -253,7 +259,7 @@ public class scrNode : MonoBehaviour
 
 		for (int i = 0, infect = 0; i < Cubes.Length && infect < count; ++i)
 		{
-			if (Cubes[i] != null && !Cubes[i].Value.GetComponent<scrCube>().Infected)
+			if (Cubes[i] != null && Cubes[i].Value.GetComponent<scrCube>().State != scrCube.DataState.INFECTED)
 			{
 				Cubes[i].Value.GetComponent<scrCube>().Infect();
 				++infect;
@@ -273,11 +279,14 @@ public class scrNode : MonoBehaviour
 			
 			scrNodeMaster.Instance.CreateLinks(Node);
 
-			scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = 3;
+			scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = scrNodeMaster.CellState.INFECTED;
 		}
 		else
 		{
-			scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = 2;
+			if (Blocked)
+				scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = scrNodeMaster.CellState.INFECTING_BLOCKED;
+			else
+				scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = scrNodeMaster.CellState.INFECTING_CLEAN;
 		}
 	}
 
@@ -290,7 +299,9 @@ public class scrNode : MonoBehaviour
 			                   //    (int)Mathf.Abs (linkedNodes[i].transform.position.y - transform.position.y) / scrNodeMaster.CELL_SIZE);
 
 			linkedNodes[i].GetComponent<scrNode>().Infect(Mathf.CeilToInt((infectedCubeCount * 0.05f)));
-			links[i].SetColors(scrNodeMaster.ColCoreInfected, Color.Lerp(scrNodeMaster.ColCoreUninfected, scrNodeMaster.ColCoreInfected, linkedNodes[i].GetComponent<scrNode>().GetInfectionAmount()));
+			links[i].SetColors(scrNodeMaster.ColCoreInfected,
+			                   Color.Lerp(linkedNodes[i].GetComponent<scrNode>().Blocked ? scrNodeMaster.ColCoreBlocked : scrNodeMaster.ColCoreUninfected,
+			                              scrNodeMaster.ColCoreInfected, linkedNodes[i].GetComponent<scrNode>().GetInfectionAmount()));
 		}
 	}
 
@@ -548,7 +559,7 @@ public class scrNode : MonoBehaviour
 				expandTimer = expandDuration;
 
 			// Expand core.
-			transform.localScale = Vector3.Lerp (Vector3.zero, Vector3.one, expandTimer / expandDuration);
+			//transform.localScale = Vector3.Lerp (Vector3.zero, Vector3.one, expandTimer / expandDuration);
 
 			// Expand out cubes.
 			for (int i = 0; i < Cubes.Length; ++i)
@@ -560,7 +571,9 @@ public class scrNode : MonoBehaviour
 		else
 		{
 			// Rotate stuff.
-			float dRot = (Data.change_size >= 0 ? 1 : -1) * Time.deltaTime * 60 / (ChildCore.transform.localScale.x * ChildCore.transform.localScale.x);
+			float dRot = 30 / ChildCore.transform.localScale.x * Time.deltaTime;
+			//transform.Rotate(0, 0, dRot);
+
 			ChildInfo.transform.Rotate(Vector3.forward, dRot);
 
 			// Also check for destruction, but otherwise keep rotating.
@@ -570,11 +583,12 @@ public class scrNode : MonoBehaviour
 				if (Cubes[i] != null)
 				{
 					Cubes[i].Value.transform.RotateAround(transform.position, Vector3.forward, dRot);
+
 					allDestroyed = false;
 				}
 			}
 
-			// Destroy if necessar.
+			// Destroy if necessary.
 			if (allDestroyed)
 			{
 				if (!Uploading)
@@ -583,7 +597,7 @@ public class scrNode : MonoBehaviour
 				GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, transform.position, Quaternion.identity);
 				explosion.particleSystem.startColor = Color.Lerp (ChildCore.renderer.material.color, Color.white, 0.5f);
 
-				scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = 0;
+				scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = scrNodeMaster.CellState.FREE;
 				scrNodeMaster.Instance.DeactivateNode(Node);
 				return;
 			}
@@ -619,7 +633,8 @@ public class scrNode : MonoBehaviour
 							linkExpandTimers[i] = linkExpandDuration;
 						
 						links[i].SetColors(Color.Lerp (Color.clear, scrNodeMaster.ColCoreInfected, linkExpandTimers[i] / halfLinkExpandDuration),
-						                   Color.Lerp (Color.clear, scrNodeMaster.ColCoreUninfected, (linkExpandTimers[i] - halfLinkExpandDuration) / halfLinkExpandDuration));
+						                   Color.Lerp (Color.clear,linkedNodes[i].GetComponent<scrNode>().Blocked ? scrNodeMaster.ColCoreBlocked : scrNodeMaster.ColCoreUninfected,
+						            				   (linkExpandTimers[i] - halfLinkExpandDuration) / halfLinkExpandDuration));
 					}
 				}
 				
@@ -652,13 +667,13 @@ public class scrNode : MonoBehaviour
 				float infectionAmount = GetInfectionAmount();
 				if (infectionAmount > 0)
 				{
-					ChildCore.renderer.material.color = Color.Lerp (scrNodeMaster.ColCoreUninfected, scrNodeMaster.ColCoreInfected, infectionAmount);
+					ChildCore.renderer.material.color = Color.Lerp (Blocked ? scrNodeMaster.ColCoreBlocked : scrNodeMaster.ColCoreUninfected, scrNodeMaster.ColCoreInfected, infectionAmount);
 				}
 
 				bool allInfected = true;
 				for (int i = 0; i < Cubes.Length; ++i)
 				{
-					if (Cubes[i] != null && !Cubes[i].Value.GetComponent<scrCube>().Infected)
+					if (Cubes[i] != null && Cubes[i].Value.GetComponent<scrCube>().State != scrCube.DataState.INFECTED)
 					    allInfected = false;
 				}
 				if (allInfected)
@@ -678,7 +693,8 @@ public class scrNode : MonoBehaviour
 		{
 			if (Cubes[i] != null)
 			{
-				scrGUI.Instance.AddToFeed("UP frag[" + (int)cubePositionEnumerator.Current[i].x + "," + (int)cubePositionEnumerator.Current[i].y + ")" + (Cubes[i].Value.GetComponent<scrCube>().Infected ? "-INFECTED" : "-CLEAN"));
+				scrGUI.Instance.AddToFeed("UP frag[" + (int)cubePositionEnumerator.Current[i].x + "," + (int)cubePositionEnumerator.Current[i].y + ")" +
+				                          (Cubes[i].Value.GetComponent<scrCube>().State == scrCube.DataState.INFECTED ? "-INFECTED" : "-CLEAN"));
 
 				Cubes[i].Value.GetComponent<scrCube>().Upload();
 				Cubes[i] = null;

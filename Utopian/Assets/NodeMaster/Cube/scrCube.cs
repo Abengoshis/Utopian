@@ -4,8 +4,17 @@ using System.Collections.Generic;
 
 public class scrCube : MonoBehaviour
 {
+	public enum DataState
+	{
+		BLOCKED = 0,
+		CLEAN = 1,
+		INFECTED = 2
+	}
+
+
 	public LinkedListNode<GameObject> Cube { get; private set; }
-	public bool Infected { get; private set; }
+	public DataState StatePrev { get; private set; }
+	public DataState State { get; private set; }
 	public bool Uploading { get; private set; }
 	public GameObject ExplosionPrefab;
 	public scrNode Parent;
@@ -22,34 +31,41 @@ public class scrCube : MonoBehaviour
 	// Set infect over time flag.
 	public void Infect()
 	{
-		Infected = true;
+		StatePrev = State;
+		State = DataState.INFECTED;
 	}
 	
 	// Immediately infect.
 	public void InfectImmediate()
 	{
-		Infected = true;
+		State = DataState.INFECTED;
 		infectionTransitionCompleted = true;
 		renderer.material = scrNodeMaster.Instance.MatCubeInfected;
 	}
 
-	public void Init(LinkedListNode<GameObject> cube, scrNode parent, Vector3 position, bool infected)
+	public void Init(LinkedListNode<GameObject> cube, scrNode parent, Vector3 position, DataState state)
 	{
 		transform.position = position;
 		transform.rotation = Quaternion.identity;
 		Parent = parent;
 		Cube = cube;
 
-		Infected = infected;
-		infectionTransitionCompleted = infected;
-		if (infected)
+		StatePrev = state;
+		State = state;
+		if (State == DataState.INFECTED)
 		{
+			infectionTransitionCompleted = true;
 			renderer.material = scrNodeMaster.Instance.MatCubeInfected;
 		}
 		else
 		{
+			infectionTransitionCompleted = false;
 			infectionTransitionTimer = 0.0f;
-			renderer.material = scrNodeMaster.Instance.MatCubeUninfected;
+
+			if (State == DataState.BLOCKED)
+				renderer.material = scrNodeMaster.Instance.MatCubeBlocked;
+			else
+				renderer.material = scrNodeMaster.Instance.MatCubeUninfected;
 		}
 
 		damageTimer = 0;
@@ -69,7 +85,7 @@ public class scrCube : MonoBehaviour
 	{
 		pathfinder = GetComponent<scrPathfinder>();
 		pathfinder.Target = GameObject.Find ("AICore");
-		Init (null, null, Vector3.zero, false);
+		Init (null, null, Vector3.zero, DataState.BLOCKED);
 	}
 
 	// Update is called once per frame
@@ -80,7 +96,7 @@ public class scrCube : MonoBehaviour
 			// While uploading (pathing towards the core) check if within the core.
 			if (transform.position.x < 10 && transform.position.x > -10 && transform.position.y < 10 && transform.position.y > -10)
 			{
-				scrAICore.Instance.Learn (Infected);
+				scrAICore.Instance.Learn (State == DataState.INFECTED);
 
 				scrNodeMaster.Instance.DeactivateCube(Cube);
 				Uploading = false;
@@ -90,22 +106,19 @@ public class scrCube : MonoBehaviour
 			transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.identity, Time.deltaTime * 100);
 		}
 
-		if (Infected)
+		if (State == DataState.INFECTED && !infectionTransitionCompleted)
 		{
-			if (!infectionTransitionCompleted)
+			infectionTransitionTimer += Time.deltaTime;
+			if (infectionTransitionTimer >= infectionTransitionDuration)
 			{
-				infectionTransitionTimer += Time.deltaTime;
-				if (infectionTransitionTimer >= infectionTransitionDuration)
-				{
-					infectionTransitionCompleted = true;
-					renderer.material = scrNodeMaster.Instance.MatCubeInfected;
-				}
-				else
-				{
-					// Interpolate between the colours of the materials with a unique material.
-					float transition = infectionTransitionTimer / infectionTransitionDuration;
-					renderer.material.SetColor("_GlowColor", Color.Lerp(scrNodeMaster.ColCubeUninfected, scrNodeMaster.ColCubeInfected, transition));
-				}
+				infectionTransitionCompleted = true;
+				renderer.material = scrNodeMaster.Instance.MatCubeInfected;
+			}
+			else
+			{
+				// Interpolate between the colours of the materials with a unique material.
+				float transition = infectionTransitionTimer / infectionTransitionDuration;
+				renderer.material.SetColor("_GlowColor", Color.Lerp(StatePrev == DataState.BLOCKED ? scrNodeMaster.ColCubeBlocked : scrNodeMaster.ColCubeUninfected, scrNodeMaster.ColCubeInfected, transition));
 			}
 		}
 
@@ -127,10 +140,18 @@ public class scrCube : MonoBehaviour
 			{
 				damageTimer = 0;
 
-				if (Infected)
-					renderer.material = scrNodeMaster.Instance.MatCubeInfected;
-				else
+				switch (State)
+				{
+				case DataState.BLOCKED:
+					renderer.material = scrNodeMaster.Instance.MatCubeBlocked;
+					break;
+				case DataState.CLEAN:
 					renderer.material = scrNodeMaster.Instance.MatCubeUninfected;
+					break;
+				case DataState.INFECTED:
+					renderer.material = scrNodeMaster.Instance.MatCubeInfected;
+					break;
+				}
 			}
 			else if (damageTimer > 0)
 			{

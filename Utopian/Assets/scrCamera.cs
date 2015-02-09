@@ -32,7 +32,7 @@ public class scrCamera : MonoBehaviour
 			{
 				if (scrNodeMaster.CellStates[x, y] > 0)
 				{
-					t.SetPixel(x, y, new Color(scrNodeMaster.CellStates[x, y] / 255.0f, 0, 0));
+					t.SetPixel(x, y, new Color((int)(scrNodeMaster.CellStates[x, y]) / 255.0f, 0, 0));
 				}
 			}
 		}
@@ -42,7 +42,7 @@ public class scrCamera : MonoBehaviour
 			int ux, uy;
 			ux = scrNodeMaster.ToCellSpace(scrNodeMaster.Instance.NodeBeingUploaded.transform.position.x);
 			uy = scrNodeMaster.ToCellSpace(scrNodeMaster.Instance.NodeBeingUploaded.transform.position.y);
-			Debug.Log (ux + " " + uy);
+			
 			t.SetPixel(ux, uy, t.GetPixel(ux, uy) + new Color(0, 1.0f, 0, 0));
 		}
 

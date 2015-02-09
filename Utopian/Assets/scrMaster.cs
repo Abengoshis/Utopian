@@ -11,6 +11,7 @@ public class scrMaster : MonoBehaviour
 	private Slider loadingSlider;
 	private float loadingAmount;
 
+
 	// Use this for initialization
 	void Start ()
 	{
@@ -32,8 +33,11 @@ public class scrMaster : MonoBehaviour
 			//Application.LoadLevel(0);
 		}
 
-		loading.transform.Find ("Text").transform.eulerAngles = new Vector3(0, 0, Mathf.Sin (Time.time) * 5);
-		loadingSlider.value = Mathf.Lerp (loadingSlider.value, loadingAmount, 0.5f);
+		if (Loading)
+		{
+			loading.transform.Find ("Text").transform.eulerAngles = new Vector3(0, 0, Mathf.Sin (Time.time) * 5);
+			loadingSlider.value = Mathf.Lerp (loadingSlider.value, loadingAmount, 0.5f);
+		}
 	}
 
 	IEnumerator LoadAll()

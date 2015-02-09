@@ -2,8 +2,9 @@
 {
 	Properties
 	{
+		_BlockedColor ("Blocked Colour", Color) = ( 0.5, 0.5, 0.5, 1.0)
 		_UninfectedColor ("Uninfected Colour", Color) = (0.0, 1.0, 1.0, 1.0)
-		_InfectedColor ("Infected Colour", Color) = (1.0, 0.6, 0.0, 1.0)
+		_InfectedColor ("Infected Colour", Color) = (1.0, 0.5, 0.0, 1.0)
 		_GridSize ("Grid Size", int) = 10
 		_CellSize ("Cell Size", int) = 1
 		_PlayerX ("Player X", float) = 0
@@ -27,6 +28,7 @@
 			#pragma fragment frag
 			#include "UnityCG.cginc"
 			
+			half4 _BlockedColor;
 			half4 _UninfectedColor;
 			half4 _InfectedColor;
 			int _GridSize;
@@ -74,18 +76,29 @@
 				if (x < 0.8 && x > 0.2 && y < 0.8 && y > 0.2)
 				{
 					if (colour.r == 1/255.0)
-						return _UninfectedColor;
-						
+						return _BlockedColor;
+				
 					if (colour.r == 2/255.0)
+						return _UninfectedColor;
+					
+					if (colour.r == 3/255.0)
+						return _InfectedColor;	
+								
+					if (colour.r == 4/255.0)
 					{
 						if ((y - x + _Time.y) % 0.6 < 0.3)
 							return _InfectedColor;
 						
 						return _UninfectedColor;
 					}
+					
+					if (colour.r == 5/255.0)
+					{
+						if ((y - x + _Time.y) % 0.6 < 0.3)
+							return _InfectedColor;
 						
-					if (colour.r == 3/255.0)
-						return _InfectedColor;
+						return _BlockedColor;
+					}
 				}
 				else
 				{

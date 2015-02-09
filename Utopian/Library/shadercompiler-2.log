@@ -1,9 +1,13 @@
 Base path: C:/Program Files (x86)/Unity/Editor/Data
-Pipe name: \\.\pipe\UnityShaderCompiler-2-190024
+Pipe name: \\.\pipe\UnityShaderCompiler-2-205664
 Cmd: getPlatforms
 Cmd: compileSnippet
   error: 2 plat 1 at (0): Arithmetic instruction limit of 64 exceeded; 85 arithmetic instructions needed to compile program
   api=1 type=1 insize=1760 outsize=0 kw= ok=0
+Cmd: compileSnippet
+  error: 2 plat 8 at (1): Compiled shader code uses too many instruction slots (109). Max. allowed by the target (ps_2_0) is 96.
+  error: 2 plat 8 at (109): Compiled shader code uses too many arithmetic instruction slots (108). Max. allowed by the target (ps_2_0) is 64. Consider increasing optimization level to reduce instruction count.
+  api=8 type=1 insize=2379 outsize=0 kw= ok=0
 Unhandled exception: Readfile from pipe failed. GLE=The pipe has been ended.
 
 

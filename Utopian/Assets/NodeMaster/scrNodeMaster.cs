@@ -6,7 +6,7 @@ public class scrNodeMaster : MonoBehaviour
 {
 	public static scrNodeMaster Instance { get; private set; }
 
-	const int LOOPS_PER_FRAME = 200;
+	const int LOOPS_PER_FRAME = 100;
 
 	#region Pool Variables
 
@@ -28,7 +28,17 @@ public class scrNodeMaster : MonoBehaviour
 
 	public const int GRID_SIZE = 10;
 	public const int CELL_SIZE = 60;
-	public static int[,] CellStates;
+
+	public enum CellState
+	{
+		FREE = 0,
+		BLOCKED = 1,
+		CLEAN = 2,
+		INFECTED = 3,
+		INFECTING_CLEAN = 4,
+		INFECTING_BLOCKED = 5
+	}
+	public static CellState[,] CellStates;
 
 	#endregion
 
@@ -39,12 +49,16 @@ public class scrNodeMaster : MonoBehaviour
 
 	public GameObject NodePrefab;
 	public GameObject CubePrefab;
-	public Material MatCubeUninfected, MatCubeInfected;
-	public Material MatCoreUninfected, MatCoreInfected;
+
+	public Material MatCubeBlocked, MatCubeUninfected, MatCubeInfected;
+	public Material MatCoreBlocked, MatCoreUninfected, MatCoreInfected;
 	public Material MatLink;
 
+	public static Color ColCubeBlocked { get; private set; }
 	public static Color ColCubeUninfected { get; private set; }
 	public static Color ColCubeInfected { get; private set; }
+
+	public static Color ColCoreBlocked { get; private set; }
 	public static Color ColCoreUninfected { get; private set; }
 	public static Color ColCoreInfected { get; private set; }
 
@@ -166,7 +180,7 @@ public class scrNodeMaster : MonoBehaviour
 
 		for (int i = 0; i < GRID_SIZE; ++i)
 			for (int j = 0; j < GRID_SIZE; ++j)
-				CellStates[i, j] = 0;
+				CellStates[i, j] = CellState.FREE;
 	}
 
 	#endregion
@@ -200,15 +214,18 @@ public class scrNodeMaster : MonoBehaviour
 		ChildGrid.renderer.material.SetInt("_GridSize", GRID_SIZE);
 		ChildGrid.renderer.material.SetInt("_CellSize", CELL_SIZE);
 
+		ColCubeBlocked = MatCubeBlocked.GetColor("_GlowColor");
 		ColCubeUninfected = MatCubeUninfected.GetColor ("_GlowColor");
 		ColCubeInfected = MatCubeInfected.GetColor ("_GlowColor");
+
+		ColCoreBlocked = MatCoreBlocked.color;
 		ColCoreUninfected = MatCoreUninfected.color;
 		ColCoreInfected = MatCoreInfected.color;
 
-		CellStates = new int[GRID_SIZE, GRID_SIZE];
+		CellStates = new CellState[GRID_SIZE, GRID_SIZE];
 		for (int i = 0; i < GRID_SIZE; ++i)
 			for (int j = 0; j < GRID_SIZE; ++j)
-				CellStates[i, j] = 0;
+				CellStates[i, j] = CellState.FREE;
 
 		// Disable. Reenabled by the master.
 		enabled = false;
@@ -230,7 +247,7 @@ public class scrNodeMaster : MonoBehaviour
 				string summary = message.summary != null ? message.summary.ToUpper() : "";
 				if (summary == "" || !(summary.Contains("UNDID") || summary.Contains ("UNDO") || summary.Contains("REVERT") || summary.Contains("REVERSION") || summary.Contains("VANDAL") || summary.Contains("SPAM")))
 				{
-					// If the user is not a bot, create the node.  An edit by a bot that is not a vandalism reversion is unlikely to contain any decent information.
+					// If the user is not a bot and not anonymous, create the node.  An edit by a bot that is not a vandalism reversion is unlikely to contain any decent information.
 					if (!message.is_bot && !message.is_anon)
 						StartCoroutine(Create (message, false));
 				}
@@ -241,6 +258,8 @@ public class scrNodeMaster : MonoBehaviour
 				}
 			}
 		}
+		else
+			messageQueue.Dequeue();
 
 		// Set the shader's player position uniform.
 		ChildGrid.renderer.material.SetFloat("_PlayerX", scrPlayer.Instance.transform.position.x);
@@ -249,12 +268,12 @@ public class scrNodeMaster : MonoBehaviour
 		// Check if the node has finished uploading.
 		if (NodeBeingUploaded == null || !NodeBeingUploaded.Uploading)
 		{
-			// Get the next node to upload.  This should be the earliest node added.
+			// Get the next node to upload.  This should be the earliest node added that isn't blocked or inactive.
 			if (inactiveNodeCount > 0)
 			{
 				foreach (GameObject n in nodePool)
 				{
-					if (n.activeSelf)
+					if (n.activeSelf && !n.GetComponent<scrNode>().Blocked)
 					{
 						NodeBeingUploaded = n.GetComponent<scrNode>();
 //						NodeBeingUploaded.BeginUpload();
@@ -278,10 +297,18 @@ public class scrNodeMaster : MonoBehaviour
 	{
 		creating = true;
 
+		if (freePositionsCount == 0)
+		{
+		//	Debug.Log("There are no free positions left to create a node for \"" +  message.page_title + "\".");
+			creating = false;
+			if (!infected)
+				yield break;
+		}
+
 		// Don't create a node if there are no nodes available.
 		if (inactiveNodeCount == 0)
 		{
-			Debug.Log("There are no inactive nodes left to create a node for \"" +  message.page_title + "\".");
+		//	Debug.Log("There are no inactive nodes left to create a node for \"" +  message.page_title + "\".");
 			creating = false;
 			if (!infected)
 				yield break;
@@ -290,7 +317,7 @@ public class scrNodeMaster : MonoBehaviour
 		// Don't create a node if there are no cubes available.
 		if (inactiveCubeCount == 0)
 		{
-			Debug.Log("There are no inactive cubes left to create a node for \"" +  message.page_title + "\".");
+		//	Debug.Log("There are no inactive cubes left to create a node for \"" +  message.page_title + "\".");
 			creating = false;
 			if (!infected)
 				yield break;
@@ -320,8 +347,10 @@ public class scrNodeMaster : MonoBehaviour
 			LinkedListNode<GameObject> n = nodePool.Last;
 			for (int i = 0; i < TOTAL_NODES - inactiveNodeCount; ++i)
 			{
-				// Don't replace the node being uploaded.
-				if (NodeBeingUploaded != null && n.Value == NodeBeingUploaded.gameObject)
+				scrNode nScript = n.Value.GetComponent<scrNode>();
+
+				// Don't replace fully infected nodes, the node being uploaded, or nodes that arent being infected.
+				if (nScript.FullyInfected || !nScript.Infected || NodeBeingUploaded != null && n.Value == NodeBeingUploaded.gameObject)
 					continue;
 
 				Vector2 position = n.Value.transform.position;
@@ -333,14 +362,17 @@ public class scrNodeMaster : MonoBehaviour
 				    position.y + CELL_SIZE * 0.5f < topLeft.y || position.y - CELL_SIZE * 0.5f > bottomRight.y)
 				{
 					// Convert the node.
-					scrNode nScript = n.Value.GetComponent<scrNode>();
 					nScript.ConvertToInfected(message);
 					break;
 				}
 
 				// Move back one node.
 				n = n.Previous;
+
+				yield return new WaitForEndOfFrame();
 			}
+
+			creating = false;
 
 			yield break;
 		}
@@ -353,7 +385,8 @@ public class scrNodeMaster : MonoBehaviour
 		node.Value.transform.position = PopRandomFreePosition();
 		scrNode nodeScript = node.Value.GetComponent<scrNode>();
 		nodeScript.Init(node, message, coreSize, infected);
-		CellStates[ToCellSpace(nodeScript.transform.position.x), ToCellSpace(nodeScript.transform.position.y)] = infected ? 3 : 1;
+		// Set the cell's state to either infected or, if contribution is positive, clean else blocked.
+		CellStates[ToCellSpace(nodeScript.transform.position.x), ToCellSpace(nodeScript.transform.position.y)] = infected ? CellState.INFECTED : nodeScript.Data.change_size > 0 ? CellState.CLEAN : CellState.BLOCKED;
 
 		// Assign cubes to the node.
 		LinkedListNode<GameObject> cube = cubePool.First;
@@ -388,7 +421,7 @@ public class scrNodeMaster : MonoBehaviour
 	public IEnumerator Destroy(LinkedListNode<GameObject> node)
 	{
 		scrNode nodeScript = node.Value.GetComponent<scrNode>();
-		CellStates[ToCellSpace(nodeScript.transform.position.x), ToCellSpace(nodeScript.transform.position.y)] = 0;
+		CellStates[ToCellSpace(nodeScript.transform.position.x), ToCellSpace(nodeScript.transform.position.y)] = CellState.FREE;
 
 		// Clear and reset the nodes cubes and make them available to future nodes.
 		for (int i = 0, numLoops = 0; i < nodeScript.Cubes.Length; ++i)
@@ -431,6 +464,9 @@ public class scrNodeMaster : MonoBehaviour
 
 	void ActivateNode(LinkedListNode<GameObject> node)
 	{
+		if (node.Value.activeSelf)
+			Debug.Log ("Trying to activate an already active node!");
+
 		node.Value.SetActive(true);
 		nodePool.Remove (node);
 		nodePool.AddLast(node);
@@ -439,12 +475,22 @@ public class scrNodeMaster : MonoBehaviour
 
 	public void DeactivateNode(LinkedListNode<GameObject> node)
 	{
+		// Free the position.
+		for (int i = freePositionsCount; i < positions.Length; ++i)
+		{
+			if (positions[i] == node.Value.transform.position)
+			{
+				positions[i] = positions[freePositionsCount];
+				positions[freePositionsCount] = node.Value.transform.position;
+				++freePositionsCount;
+				break;
+			}
+		}
+
 		node.Value.SetActive(false);
 		nodePool.Remove (node);
 		nodePool.AddFirst(node);
 		++inactiveNodeCount;
-
-
 	}
 
 	void ActivateCube(LinkedListNode<GameObject> cube)

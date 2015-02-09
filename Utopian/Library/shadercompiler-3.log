@@ -1,48 +1,11 @@
 Base path: C:/Program Files (x86)/Unity/Editor/Data
-Pipe name: \\.\pipe\UnityShaderCompiler-3-189436
+Pipe name: \\.\pipe\UnityShaderCompiler-3-205996
 Cmd: getPlatforms
 Cmd: compileSnippet
-  api=8 type=0 insize=1760 outsize=1650 kw= ok=1
-Cmd: compileSnippet
-  api=1 type=0 insize=4850 outsize=595 kw=DIRECTIONAL SHADOWS_OFF LIGHTMAP_OFF DIRLIGHTMAP_OFF ok=1
-Cmd: compileSnippet
-  api=8 type=0 insize=4850 outsize=2048 kw=DIRECTIONAL SHADOWS_OFF LIGHTMAP_ON DIRLIGHTMAP_OFF ok=1
-Cmd: compileSnippet
-  api=4 type=0 insize=4850 outsize=2997 kw=DIRECTIONAL SHADOWS_SCREEN LIGHTMAP_OFF DIRLIGHTMAP_OFF ok=1
-Cmd: compileSnippet
-  api=1 type=0 insize=4850 outsize=319 kw=DIRECTIONAL SHADOWS_SCREEN LIGHTMAP_ON DIRLIGHTMAP_OFF ok=1
-Cmd: compileSnippet
-  api=4 type=0 insize=4850 outsize=4329 kw=DIRECTIONAL SHADOWS_OFF LIGHTMAP_OFF DIRLIGHTMAP_OFF VERTEXLIGHT_ON ok=1
-Cmd: compileSnippet
-  api=8 type=0 insize=4850 outsize=7150 kw=DIRECTIONAL SHADOWS_SCREEN LIGHTMAP_OFF DIRLIGHTMAP_OFF VERTEXLIGHT_ON ok=1
-Cmd: compileSnippet
-  api=8 type=1 insize=4850 outsize=2673 kw=DIRECTIONAL SHADOWS_OFF LIGHTMAP_OFF DIRLIGHTMAP_OFF ok=1
-Cmd: compileSnippet
-  api=4 type=1 insize=4850 outsize=1818 kw=DIRECTIONAL SHADOWS_SCREEN LIGHTMAP_OFF DIRLIGHTMAP_OFF ok=1
-Cmd: compileSnippet
-  api=0 type=0 insize=2826 outsize=817 kw=POINT ok=1
-Cmd: compileSnippet
-  api=1 type=0 insize=2826 outsize=253 kw=DIRECTIONAL ok=1
-Cmd: compileSnippet
-  api=4 type=0 insize=2826 outsize=2875 kw=SPOT ok=1
-Cmd: compileSnippet
-  api=4 type=0 insize=2826 outsize=2875 kw=POINT_COOKIE ok=1
-Cmd: compileSnippet
-  api=4 type=0 insize=2826 outsize=2542 kw=DIRECTIONAL_COOKIE ok=1
-Cmd: compileSnippet
-  api=8 type=0 insize=2826 outsize=3632 kw=DIRECTIONAL_COOKIE ok=1
-Cmd: compileSnippet
-  api=8 type=1 insize=2826 outsize=3088 kw=POINT ok=1
-Cmd: compileSnippet
-  api=4 type=1 insize=2826 outsize=2355 kw=SPOT ok=1
-Cmd: compileSnippet
-  api=1 type=1 insize=2826 outsize=879 kw=POINT_COOKIE ok=1
-Cmd: compileSnippet
-  api=0 type=1 insize=2826 outsize=876 kw=DIRECTIONAL_COOKIE ok=1
-Cmd: compileSnippet
-  api=1 type=1 insize=2826 outsize=755 kw=DIRECTIONAL_COOKIE ok=1
-Cmd: compileSnippet
-  api=8 type=1 insize=2826 outsize=2844 kw=DIRECTIONAL_COOKIE ok=1
+  error: 2 plat 1 at (89): operands to "%" must be integral
+  error: 2 plat 1 at (97): operands to "%" must be integral
+  error: 2 plat 1 at (105): operands to "%" must be integral
+  api=1 type=0 insize=2379 outsize=0 kw= ok=0
 Unhandled exception: Readfile from pipe failed. GLE=The pipe has been ended.
 
 

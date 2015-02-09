@@ -75,7 +75,7 @@ public class scrUserEnemy : scrEnemy
 			foreach (Collider c in nearNodes)
 			{
 				scrNode n = c.GetComponent<scrNode>();
-				if (!n.Infected)
+				if (!n.Infected && !n.Blocked)
 				{											
 					clean = n;
 					break;
