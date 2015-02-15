@@ -48,7 +48,7 @@ public class scrBullet : MonoBehaviour
 			fixedUpdateBehaviour();
 	}
 
-	void OnCollisionEnter2D(Collision2D c)
+	void OnTriggerEnter2D(Collider2D c)
 	{
 		if (Visible)
 		{

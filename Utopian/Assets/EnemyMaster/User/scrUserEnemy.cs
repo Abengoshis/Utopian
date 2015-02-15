@@ -5,7 +5,7 @@ public class scrUserEnemy : scrEnemy
 {
 	public scrNode SiegeNode { get; private set; }
 	private int targetCubeIndex = 0;
-	private float fireRate = 5;
+	private float fireRate = 0.5f;
 	private float fireTimer = 0;
 
 	private scrPathfinder pathfinder;
@@ -51,6 +51,7 @@ public class scrUserEnemy : scrEnemy
 				Vector2 direction = SiegeNode.Cubes[targetCubeIndex].Value.transform.position - transform.position;
 				transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0, 0, Mathf.Rad2Deg * Mathf.Atan2(direction.y, direction.x)), 180 * Time.deltaTime);
 			
+				// Check the distance.
 				if (direction.magnitude < scrNodeMaster.CELL_SIZE)
 				{
 					fireTimer += Time.deltaTime * fireRate;
@@ -58,7 +59,7 @@ public class scrUserEnemy : scrEnemy
 					{
 						fireTimer = 0;
 						
-						scrEnemyMaster.BulletPool.Create (scrBullet.BehaviourType.STANDARD, transform.position, transform.right, 80, 1, false);
+						StartCoroutine(ShootThrice());
 					}
 				}
 			}
@@ -76,8 +77,8 @@ public class scrUserEnemy : scrEnemy
 				if (fireTimer >= 1)
 				{
 					fireTimer = 0;
-					
-					scrEnemyMaster.BulletPool.Create (scrBullet.BehaviourType.STANDARD, transform.position, transform.right, 80, 1, false);
+
+					StartCoroutine(ShootThrice());
 				}
 			}
 
@@ -105,5 +106,15 @@ public class scrUserEnemy : scrEnemy
 		}
 
 		base.Update();
+	}
+
+	IEnumerator ShootThrice()
+	{
+		for (int i = 0; i < 3; ++i)
+		{
+			scrEnemyMaster.BulletPool.Create (scrBullet.BehaviourType.STANDARD, transform.position, transform.right, 80, 1, false);
+			//audio.PlayOneShot(FireSound);
+			yield return new WaitForSeconds(0.1f);
+		}
 	}
 }

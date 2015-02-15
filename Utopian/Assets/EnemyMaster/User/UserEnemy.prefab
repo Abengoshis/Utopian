@@ -44,6 +44,7 @@ GameObject:
   - 114: {fileID: 11415916}
   - 114: {fileID: 11485604}
   - 58: {fileID: 5825722}
+  - 82: {fileID: 8289418}
   m_Layer: 12
   m_Name: UserEnemy
   m_TagString: Untagged
@@ -376,6 +377,64 @@ CircleCollider2D:
   m_IsTrigger: 0
   m_Radius: 2
   m_Center: {x: 0, y: 0}
+--- !u!82 &8289418
+AudioSource:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 185594}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: .200000003
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 1
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    - time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
 --- !u!96 &9627178
 TrailRenderer:
   m_ObjectHideFlags: 1
@@ -468,6 +527,7 @@ MonoBehaviour:
   Speed: 15
   ExplosionPrefab: {fileID: 131230, guid: c9cfdfdad4322fa429ceccd868652e59, type: 2}
   ExplosionColour: {r: 1, g: .817623913, b: .382352948, a: 1}
+  FireSound: {fileID: 8300000, guid: 415d4f99097993642941cb56dd686411, type: 3}
   DestroyOnExpire: 0
   DamageToDestroy: 1
 --- !u!1001 &100100000

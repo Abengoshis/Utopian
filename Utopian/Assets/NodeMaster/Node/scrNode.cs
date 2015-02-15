@@ -108,7 +108,7 @@ public class scrNode : MonoBehaviour
 	float expandTimer = 0.0f;
 
 	bool ready = false;
-	bool visibleToPlayer = false;
+	public bool VisibleToPlayer { get; private set; }
 
 //	public List<scrEnemy> Enemies { get; private set; }
 
@@ -182,11 +182,7 @@ public class scrNode : MonoBehaviour
 		else
 		{
 			infectedCubeCount = 0;
-
-			if (Blocked)
-				ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreBlocked;
-			else
-				ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreUninfected;
+			ChildCore.renderer.material = Blocked ? scrNodeMaster.Instance.MatCoreBlocked : scrNodeMaster.Instance.MatCoreUninfected;
 		}
 
 		totalCubeCount = Cubes.Length;
@@ -219,18 +215,53 @@ public class scrNode : MonoBehaviour
 		{
 			if (Cubes[i] == cube)
 			{
-				scrCube cubeScript = Cubes[i].Value.GetComponent<scrCube>();
-
-				if (cubeScript.State == scrCube.DataState.INFECTED)
-				{
-					--infectedCubeCount;
-					if (infectedCubeCount == 0)
-						Infected = false;
-				}
+				bool cubeInfected = cube.Value.GetComponent<scrCube>().State == scrCube.DataState.INFECTED;
 
 				scrNodeMaster.Instance.DeactivateCube(cube);
 				Cubes[i] = null;
 				--totalCubeCount;
+
+				bool changeState = false;
+				if (cubeInfected)	// Destroy an infected cube, check for disinfection.
+				{
+					--infectedCubeCount;
+
+					// No longer infected.
+					if (infectedCubeCount == 0)
+					{
+						Infected = false;
+						changeState = true;
+					}
+				}
+				else // Destroyed a non-infected cube, check for full infection.
+				{
+					if (infectedCubeCount == totalCubeCount)
+					{
+						Infect (0);
+						changeState = true;
+					}
+				}
+
+				if (changeState)
+				{
+					if (!Infected)
+					{
+						if (Blocked)
+						{
+							ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreBlocked;
+							scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = scrNodeMaster.CellState.BLOCKED;
+						}
+						else
+						{
+							ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreUninfected;
+							scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = scrNodeMaster.CellState.CLEAN;
+						}
+					}
+				}
+				else // Partially infected.
+				{
+					ChildCore.renderer.material.color = Color.Lerp (Blocked ? scrNodeMaster.ColCoreBlocked : scrNodeMaster.ColCoreUninfected, scrNodeMaster.ColCoreInfected, GetInfectionAmount());
+				}
 				return;
 			}
 		}
@@ -281,10 +312,13 @@ public class scrNode : MonoBehaviour
 		}
 		else
 		{
+			// Partially infected.
 			if (Blocked)
 				scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = scrNodeMaster.CellState.INFECTING_BLOCKED;
 			else
 				scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = scrNodeMaster.CellState.INFECTING_CLEAN;
+
+			ChildCore.renderer.material.color = Color.Lerp (Blocked ? scrNodeMaster.ColCoreBlocked : scrNodeMaster.ColCoreUninfected, scrNodeMaster.ColCoreInfected, GetInfectionAmount());
 		}
 	}
 
@@ -553,7 +587,7 @@ public class scrNode : MonoBehaviour
 		if (!ready)
 			return;
 
-		visibleToPlayer =  scrPlayer.Instance.transform.position.x < transform.position.x + scrNodeMaster.CELL_SIZE * 2.5f &&
+		VisibleToPlayer =  scrPlayer.Instance.transform.position.x < transform.position.x + scrNodeMaster.CELL_SIZE * 2.5f &&
 						   scrPlayer.Instance.transform.position.x > transform.position.x - scrNodeMaster.CELL_SIZE * 2.5f &&
 					       scrPlayer.Instance.transform.position.y < transform.position.y + scrNodeMaster.CELL_SIZE * 1.5f &&
 						   scrPlayer.Instance.transform.position.y > transform.position.y - scrNodeMaster.CELL_SIZE * 1.5f;
@@ -577,9 +611,7 @@ public class scrNode : MonoBehaviour
 		else
 		{
 			// Also check for destruction, but otherwise keep rotating.
-			bool allDestroyed = true;
-
-			if (visibleToPlayer)
+			if (VisibleToPlayer)
 			{
 				float dRot = 30 / ChildCore.transform.localScale.x * Time.deltaTime;
 				ChildInfo.transform.Rotate(Vector3.forward, dRot);
@@ -588,24 +620,12 @@ public class scrNode : MonoBehaviour
 					if (Cubes[i] != null)
 					{
 						Cubes[i].Value.transform.RotateAround(transform.position, Vector3.forward, dRot);
-						allDestroyed = false;
-					}
-				}
-			}
-			else
-			{
-				for (int i = 0; i < Cubes.Length; ++i)
-				{
-					if (Cubes[i] != null)
-					{
-						allDestroyed = false;
-						break;
 					}
 				}
 			}
 
 			// Destroy if necessary.
-			if (allDestroyed)
+			if (totalCubeCount == 0)
 			{
 				GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, transform.position, Quaternion.identity);
 				explosion.particleSystem.startColor = Color.Lerp (ChildCore.renderer.material.color, Color.white, 0.5f);
@@ -675,28 +695,6 @@ public class scrNode : MonoBehaviour
 					InfectLinkedNodes();
 				}
 			}
-			else
-			{
-				float infectionAmount = GetInfectionAmount();
-				if (infectionAmount > 0)
-				{
-					ChildCore.renderer.material.color = Color.Lerp (Blocked ? scrNodeMaster.ColCoreBlocked : scrNodeMaster.ColCoreUninfected, scrNodeMaster.ColCoreInfected, infectionAmount);
-				}
-
-				bool allInfected = true;
-				for (int i = 0; i < Cubes.Length; ++i)
-				{
-					if (Cubes[i] != null && Cubes[i].Value.GetComponent<scrCube>().State != scrCube.DataState.INFECTED)
-					{
-					    allInfected = false;
-						break;
-					}
-				}
-
-				if (allInfected)
-					Infect (0);
-
-			}
 		}
 	}
 
@@ -709,6 +707,7 @@ public class scrNode : MonoBehaviour
 		{
 			if (Cubes[i] != null)
 			{
+				--totalCubeCount;
 				Cubes[i].Value.GetComponent<scrCube>().Upload();
 				Cubes[i] = null;
 				yield return new WaitForSeconds(1.0f);

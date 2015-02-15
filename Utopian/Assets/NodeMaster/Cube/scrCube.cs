@@ -24,7 +24,7 @@ public class scrCube : MonoBehaviour
 	bool infectionTransitionCompleted = false;
 
 	float damageTimer = 0;
-	float damageToDestroy = 2;
+	float damageToDestroy = 1.1f;
 
 	scrPathfinder pathfinder;
 
@@ -129,15 +129,24 @@ public class scrCube : MonoBehaviour
 
 		if (damageTimer >= damageToDestroy)
 		{
-			GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, transform.position, Quaternion.identity);
-			explosion.particleSystem.startColor = Color.Lerp (renderer.material.GetColor("_GlowColor"), Color.white, 0.5f);
 
 			if (Parent == null)
 			{
+				GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, transform.position, Quaternion.identity);
+				explosion.particleSystem.startColor = Color.Lerp (renderer.material.GetColor("_GlowColor"), Color.white, 0.5f);
+
 				scrNodeMaster.Instance.DeactivateCube(Cube);
 			}
 			else
+			{
+				if (Parent.VisibleToPlayer)
+				{
+					GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, transform.position, Quaternion.identity);
+					explosion.particleSystem.startColor = Color.Lerp (renderer.material.GetColor("_GlowColor"), Color.white, 0.5f);
+				}
+
 				Parent.RemoveCube(Cube);
+			}
 		}
 		else
 		{
@@ -166,7 +175,7 @@ public class scrCube : MonoBehaviour
 		}
 	}
 
-	void OnCollisionEnter2D(Collision2D c)
+	void OnTriggerEnter2D(Collider2D c)
 	{
 		if (c.gameObject.layer == LayerMask.NameToLayer("PBullet") || c.gameObject.layer == LayerMask.NameToLayer("EBullet"))
 		{

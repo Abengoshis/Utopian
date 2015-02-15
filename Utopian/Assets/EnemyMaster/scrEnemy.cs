@@ -9,6 +9,7 @@ public class scrEnemy : MonoBehaviour
 	public float Speed = 10;
 	public GameObject ExplosionPrefab;
 	public Color ExplosionColour;
+	public AudioClip FireSound;
 
 	public bool DestroyOnExpire = false;
 	public float DamageToDestroy = 1;
@@ -81,7 +82,7 @@ public class scrEnemy : MonoBehaviour
 		}
 	}
 
-	void OnCollisionEnter2D(Collision2D c)
+	void OnTriggerEnter2D(Collider2D c)
 	{
 		if (c.gameObject.layer == LayerMask.NameToLayer("PBullet"))
 		{
@@ -89,4 +90,5 @@ public class scrEnemy : MonoBehaviour
 			damageTimer += bullet.Damage;
 		}
 	}
+	
 }

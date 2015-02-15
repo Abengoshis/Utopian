@@ -15,6 +15,9 @@ public class scrSnakeEnemy : scrEnemy
 
 	private scrPathfinder pathfinder;
 
+	private float fireRate = 10;
+	private float fireTimer = 0;
+
 	public override void Init()
 	{
 		// Create a segment for each character, which will trail after the head.
@@ -62,7 +65,16 @@ public class scrSnakeEnemy : scrEnemy
 		if (Vector2.Distance(transform.position, scrPlayer.Instance.transform.position) < 50 && !Physics.Linecast(transform.position, scrPlayer.Instance.transform.position, 1 << LayerMask.NameToLayer("Node")))
 		{
 			pathfinder.Pause();
-			transform.position += Vector3.Lerp ((transform.position - (Vector3)prevPositions[0]).normalized, (scrPlayer.Instance.transform.position - transform.position).normalized, 0.3f).normalized * Time.deltaTime * Speed;
+			Vector3 direction = Vector3.Lerp ((transform.position - (Vector3)prevPositions[0]).normalized, (scrPlayer.Instance.transform.position - transform.position).normalized, 0.3f).normalized * Time.deltaTime * Speed;
+			transform.position += direction;
+		
+			fireTimer += Time.deltaTime * fireRate;
+			if (fireTimer >= 1)
+			{
+				fireTimer = 0;
+				
+				scrEnemyMaster.BulletPool.Create (scrBullet.BehaviourType.STANDARD, transform.position, direction.normalized, 80, 1, false);
+			}
 		}
 		else
 		{

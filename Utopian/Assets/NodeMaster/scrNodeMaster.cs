@@ -166,15 +166,34 @@ public class scrNodeMaster : MonoBehaviour
 		}
 	}
 
-	public void ClearPools()
+	public IEnumerator Purge()
 	{
-		inactiveNodeCount = nodePool.Count;
-		foreach (GameObject node in nodePool)
-			node.SetActive(false);
-		
-		inactiveCubeCount = cubePool.Count;
-		foreach (GameObject cube in cubePool)
-			cube.SetActive(false);
+		NodeBeingUploaded = null;
+
+		float loops = 0;
+
+		// Expand a square from the centre.
+		float dRadius = CELL_SIZE;
+		float radius = 0;
+		while (inactiveCubeCount != cubePool.Count)
+		{
+			radius += dRadius;
+			foreach (Collider2D c in Physics2D.OverlapAreaAll(new Vector2(-radius, -radius), new Vector2(radius, radius), (1 << LayerMask.NameToLayer("Cube")) | (1 << LayerMask.NameToLayer("Enemy")) ))
+			{
+				if (c != null && 
+				    (c.GetComponent<scrCube>() != null ||
+				    c.GetComponent<scrEnemy>() != null))
+				{
+					c.SendMessage("DestroyImmediate", SendMessageOptions.RequireReceiver);
+				}
+
+				if (++loops == 30)
+				{
+					loops = 0;
+					yield return new WaitForEndOfFrame();
+				}
+			}
+		}
 		
 		freePositionsCount = positions.Length;
 
@@ -234,6 +253,13 @@ public class scrNodeMaster : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
+		// Set the shader's player position uniform.
+		ChildGrid.renderer.material.SetFloat("_PlayerX", scrPlayer.Instance.transform.position.x);
+		ChildGrid.renderer.material.SetFloat("_PlayerY", scrPlayer.Instance.transform.position.y);
+
+		if (scrMaster.Instance.Transitioning)
+			return;
+
 		// Generate nodes as long as the queue contains messages.
 		if (messageQueue.Count != 0)
 		{
@@ -270,11 +296,6 @@ public class scrNodeMaster : MonoBehaviour
 				}
 			}
 		}
-		
-
-		// Set the shader's player position uniform.
-		ChildGrid.renderer.material.SetFloat("_PlayerX", scrPlayer.Instance.transform.position.x);
-		ChildGrid.renderer.material.SetFloat("_PlayerY", scrPlayer.Instance.transform.position.y);
 
 		// Check if the node has finished uploading.
 		if (NodeBeingUploaded == null || !NodeBeingUploaded.Uploading)

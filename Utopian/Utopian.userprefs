@@ -1,12 +1,20 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Release" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\scrResults.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Bullets\scrBullet.cs">
     <Files>
-      <File FileName="Assets\NodeMaster\scrNodeMaster.cs" Line="431" Column="29" />
-      <File FileName="Assets\scrResults.cs" Line="38" Column="88" />
-      <File FileName="Assets\scrMaster.cs" Line="1" Column="1" />
-      <File FileName="Assets\Player\scrPlayer.cs" Line="1" Column="1" />
-      <File FileName="Assets\scrWebSocketClient.cs" Line="1" Column="1" />
+      <File FileName="Assets\Bullets\scrBullet.cs" Line="37" Column="3" />
+      <File FileName="Assets\Player\scrPlayer.cs" Line="173" Column="4" />
+      <File FileName="Assets\scrMaster.cs" Line="35" Column="27" />
+      <File FileName="Assets\scrResults.cs" Line="1" Column="1" />
+      <File FileName="Assets\Wikiworld\scrAICore.cs" Line="93" Column="1" />
+      <File FileName="Assets\EnemyMaster\User\scrUserEnemy.cs" Line="115" Column="1" />
+      <File FileName="Assets\EnemyMaster\scrEnemy.cs" Line="72" Column="12" />
+      <File FileName="Assets\Effects\Explosions\scrExplosion.cs" Line="1" Column="1" />
+      <File FileName="Assets\NodeMaster\scrNodeMaster.cs" Line="165" Column="20" />
+      <File FileName="Assets\scrWebSocketClient.cs" Line="175" Column="1" />
+      <File FileName="Assets\NodeMaster\Node\scrNode.cs" Line="710" Column="22" />
+      <File FileName="Assets\EnemyMaster\Snake\scrSnakeEnemy.cs" Line="60" Column="7" />
+      <File FileName="Assets\NodeMaster\Cube\scrCube.cs" Line="152" Column="4" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

@@ -6,6 +6,7 @@ public class scrPlayer : MonoBehaviour
 {
 	public static scrPlayer Instance { get; private set; }
 
+	public float SimulatedCursorSensitivity = 10;
 	public Vector2 SimulatedCursorPosition { get; private set; }
 	Vector2 simulatedCursorOffset = Vector2.zero;
 	float simulatedCursorRadius = 80.0f;
@@ -24,6 +25,7 @@ public class scrPlayer : MonoBehaviour
 	public Vector2 AimDirection { get; private set; }
 
 	// --
+	public AudioClip FireSound;
 	scrBulletPool bulletPool;
 	float fireRate = 20;	// Shots per second.
 	float fireTimer = 0;
@@ -107,7 +109,7 @@ public class scrPlayer : MonoBehaviour
 
 	void ProcessInput()
 	{
-		simulatedCursorOffset += new Vector2(Input.GetAxis ("Mouse X") / Screen.width, Input.GetAxis ("Mouse Y") / Screen.height) * 1000;
+		simulatedCursorOffset += new Vector2(Input.GetAxis ("Mouse X") / Screen.width, Input.GetAxis ("Mouse Y") / Screen.height) * 1000 * SimulatedCursorSensitivity;
 		if (simulatedCursorOffset.magnitude > simulatedCursorRadius)
 			simulatedCursorOffset = simulatedCursorOffset.normalized * simulatedCursorRadius;
 		SimulatedCursorPosition = (Vector2)transform.position + simulatedCursorOffset;
@@ -142,6 +144,8 @@ public class scrPlayer : MonoBehaviour
 				else
 					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.TransformPoint(gunOffsets[1]), transform.right, 80, 1, true);
 
+				//audio.PlayOneShot(FireSound);
+
 				fireMode = (fireMode == 0 ? 1 : 0);
 				fireTimer = 0;
 			}
@@ -173,7 +177,7 @@ public class scrPlayer : MonoBehaviour
 		bombDeployed = false;
 	}
 
-	void OnCollisionEnter2D(Collision2D c)
+	void OnTriggerEnter2D(Collider2D c)
 	{
 		if (c.gameObject.layer == LayerMask.NameToLayer("EBullet"))
 		{
