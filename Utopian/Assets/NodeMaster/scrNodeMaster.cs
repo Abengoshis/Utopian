@@ -234,32 +234,43 @@ public class scrNodeMaster : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
-		// If not busy creating a node, check for nodes to make.
-		if (!creating)
+		// Generate nodes as long as the queue contains messages.
+		if (messageQueue.Count != 0)
 		{
-			// Generate nodes as long as the queue contains messages.
-			if (messageQueue.Count != 0)
-			{
-				// Get the message.
-				Message message = messageQueue.Dequeue ();
+			// Get the message.
+			Message message = messageQueue.Peek ();
 
-				// Check the message for certain criteria to determine whether or not to make an infected or uninfected node.
-				string summary = message.summary != null ? message.summary.ToUpper() : "";
-				if (summary == "" || !(summary.Contains("UNDID") || summary.Contains ("UNDO") || summary.Contains("REVERT") || summary.Contains("REVERSION") || summary.Contains("VANDAL") || summary.Contains("SPAM")))
+			// Check the message for certain criteria to determine whether or not to make an infected or uninfected node.
+			string summary = message.summary != null ? message.summary.ToUpper() : "";
+			if (summary.Length == 0 || !(summary.Contains("UNDID") || summary.Contains ("UNDO") || summary.Contains("REVERT") || summary.Contains("REVERSION") || summary.Contains("VANDAL") || summary.Contains("SPAM")))
+			{
+				// Remove the message if it isn't infected so it's more likely infected nodes accumulate.
+				messageQueue.Dequeue();
+
+				// If the user is not a bot and not anonymous, create the node.  An edit by a bot that is not a vandalism reversion is unlikely to contain any decent information.
+				if (message.is_bot || message.is_anon || creating || message.change_size == 0)
 				{
-					// If the user is not a bot and not anonymous, create the node.  An edit by a bot that is not a vandalism reversion is unlikely to contain any decent information.
-					if (!message.is_bot && !message.is_anon)
-						StartCoroutine(Create (message, false));
+					scrGUI.Instance.AddToFeed(message.page_title, new Color(0.1f, 0.1f, 0.1f));
 				}
 				else
 				{
-					// Create an infected node.
+					StartCoroutine(Create (message, false));
+				}
+			}
+			else
+			{
+				// Create an infected node.
+				if (!creating)
+				{
+					messageQueue.Dequeue();
+
+					scrResults.ReversionEdits.Add(message);
+
 					StartCoroutine(Create (message, true));
 				}
 			}
 		}
-		else
-			messageQueue.Dequeue();
+		
 
 		// Set the shader's player position uniform.
 		ChildGrid.renderer.material.SetFloat("_PlayerX", scrPlayer.Instance.transform.position.x);
@@ -372,6 +383,8 @@ public class scrNodeMaster : MonoBehaviour
 				yield return new WaitForEndOfFrame();
 			}
 
+			scrGUI.Instance.AddToFeed(message.page_title, ColCoreInfected);
+
 			creating = false;
 
 			yield break;
@@ -414,6 +427,8 @@ public class scrNodeMaster : MonoBehaviour
 
 		// Release the node! Go! Go free!!
 		nodeScript.MakeReady();
+
+		scrGUI.Instance.AddToFeed(message.page_title, infected ? ColCoreInfected : (message.change_size > 0 ? Color.cyan : Color.grey));
 
 		creating = false;
 	}

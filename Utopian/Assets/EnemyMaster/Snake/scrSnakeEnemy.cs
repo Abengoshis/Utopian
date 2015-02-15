@@ -98,7 +98,7 @@ public class scrSnakeEnemy : scrEnemy
 				{
 					Segments[i].renderer.material.color = Color.black;
 					Segments[i].transform.localScale *= 0.5f;
-					Segments[i].collider.enabled = false;
+					Segments[i].collider2D.enabled = false;
 					Segments[i].enabled = false;
 					Segments[i].GetComponentInChildren<TextMesh>().text = "";
 				}

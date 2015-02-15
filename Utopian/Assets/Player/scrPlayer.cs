@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Rigidbody2D))]
 public class scrPlayer : MonoBehaviour
 {
 	public static scrPlayer Instance { get; private set; }
@@ -11,9 +11,14 @@ public class scrPlayer : MonoBehaviour
 	float simulatedCursorRadius = 80.0f;
 
 	// --
+	float damageToDestroy = 3.0f;
+	float damageTimer = 0;
+	Renderer[] renderers;
+	Color[] colours;
+
+	// --
 	float acceleration = 200.0f;
 	float topSpeed = 200.0f;
-	bool  boosting = false;
 
 	public Vector2 MoveDirection { get; private set; }
 	public Vector2 AimDirection { get; private set; }
@@ -24,6 +29,10 @@ public class scrPlayer : MonoBehaviour
 	float fireTimer = 0;
 	int fireMode = 0;
 
+	public GameObject BombExplosionPrefab;
+	public int Bombs { get; private set; }
+	bool bombDeployed = false;
+
 	Vector3[] gunOffsets = new Vector3[] { new Vector3(3, 0.85f), new Vector3(3, -0.85f) };
 
 	void Start ()
@@ -31,10 +40,21 @@ public class scrPlayer : MonoBehaviour
 		Instance = this;
 		SimulatedCursorPosition = transform.position;
 
+		renderers = GetComponentsInChildren<Renderer>();
+		colours = new Color[renderers.Length];
+		for (int i = 0; i < renderers.Length; ++i)
+		{
+			if (renderers[i].material.HasProperty("_Color"))
+				colours[i] = renderers[i].material.color;
+			else
+				colours[i] = renderers[i].material.GetColor("_TintColor");
+		}
+
 		MoveDirection = Vector2.zero;
 		AimDirection = Vector2.zero;
 
 		bulletPool = GetComponent<scrBulletPool>();
+		Bombs = 3;
 
 		Screen.lockCursor = true;
 
@@ -44,8 +64,35 @@ public class scrPlayer : MonoBehaviour
 	
 	void Update ()
 	{
+		if (Input.GetKey(KeyCode.Y))
+		{
+			scrResults.TimeEnd = Time.time;
+			Application.LoadLevel("Results");
+		}
+
 		if (fireTimer < 1)
 			fireTimer += fireRate * Time.deltaTime;
+
+		if (damageTimer >= damageToDestroy)
+		{
+			//GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, transform.position, Quaternion.identity);
+			//explosion.particleSystem.startColor = Color.Lerp (renderer.material.GetColor("_GlowColor"), Color.white, 0.5f);
+			
+			gameObject.SetActive(false);
+		}
+		else
+		{
+			damageTimer -= Time.deltaTime;
+
+			float t = damageTimer / damageToDestroy;
+			for(int i = 0; i < renderers.Length; ++i)
+			{
+				if (renderers[i].material.HasProperty("_Color"))
+					renderers[i].material.color = Color.Lerp (colours[i], Color.white, t);
+				else
+					renderers[i].material.SetColor("_TintColor", Color.Lerp (colours[i], Color.white, t));
+			}
+		}
 
 		ProcessInput ();
 	}
@@ -53,9 +100,9 @@ public class scrPlayer : MonoBehaviour
 	void FixedUpdate()
 	{
 		// Add acceleration in the target move direction.
-		rigidbody.AddForce(MoveDirection * acceleration, ForceMode.Acceleration);
-		if (rigidbody.velocity.magnitude > topSpeed)
-			rigidbody.velocity = rigidbody.velocity.normalized * topSpeed;
+		rigidbody2D.AddForce(MoveDirection * acceleration, ForceMode2D.Force);
+		if (rigidbody2D.velocity.magnitude > topSpeed)
+			rigidbody2D.velocity = rigidbody2D.velocity.normalized * topSpeed;
 	}
 
 	void ProcessInput()
@@ -86,7 +133,7 @@ public class scrPlayer : MonoBehaviour
 		MoveDirection = move;
 
 		// Check for shooting.		
-		if (Input.GetButton("Fire1"))
+		if (Input.GetButton("Fire"))
 		{
 			if (fireTimer >= 1)
 			{
@@ -98,6 +145,40 @@ public class scrPlayer : MonoBehaviour
 				fireMode = (fireMode == 0 ? 1 : 0);
 				fireTimer = 0;
 			}
+		}
+
+		if (Input.GetButtonDown ("Bomb"))
+		{
+			Instantiate(BombExplosionPrefab, transform.position, Quaternion.identity);;
+			StartCoroutine(DeployBomb(transform.position));
+		}
+	}
+
+	IEnumerator DeployBomb(Vector3 position)
+	{
+		bombDeployed = true;
+
+		for (int i = 0; i < 4; ++i)
+		{
+			foreach (Collider2D c in Physics2D.OverlapCircleAll(position, (i + 1) / 4.0f * 60))
+			{
+				if (c.GetComponent<scrCube>() != null ||
+				    c.GetComponent<scrEnemy>() != null)
+					c.SendMessage("DestroyImmediate");
+			}
+
+			yield return new WaitForSeconds(0.3f);
+		}
+
+		bombDeployed = false;
+	}
+
+	void OnCollisionEnter2D(Collision2D c)
+	{
+		if (c.gameObject.layer == LayerMask.NameToLayer("EBullet"))
+		{
+			scrBullet bullet = c.gameObject.GetComponent<scrBullet>();
+			damageTimer += bullet.Damage;
 		}
 	}
 

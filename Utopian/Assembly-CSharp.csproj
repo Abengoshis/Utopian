@@ -59,10 +59,12 @@
      <Compile Include="Assets\NodeMaster\Node\scrNode.cs" />
      <Compile Include="Assets\NodeMaster\scrNodeMaster.cs" />
      <Compile Include="Assets\Player\scrPlayer.cs" />
+     <Compile Include="Assets\Player\scrPowerupManager.cs" />
      <Compile Include="Assets\Wikiworld\scrAICore.cs" />
      <Compile Include="Assets\scrCamera.cs" />
      <Compile Include="Assets\scrMaster.cs" />
      <Compile Include="Assets\scrPathfinder.cs" />
+     <Compile Include="Assets\scrResults.cs" />
      <Compile Include="Assets\scrWebSocketClient.cs" />
      <None Include="Assets\NodeMaster\Cube\shdCube.shader" />
      <None Include="Assets\NodeMaster\shdGrid.shader" />

@@ -99,7 +99,7 @@ public class scrPathfinder : MonoBehaviour
 			if (horizontal)
 			{
 				prevVertical = false;
-				if (transform.position.x < Target.transform.position.x)
+				if ((transform.position.x < Target.transform.position.x || GridPosition.x == 1) && GridPosition.x != scrNodeMaster.GRID_SIZE - 1)
 					NextGridPosition += new Vector2(1, 0);
 				else
 					NextGridPosition -= new Vector2(1, 0);
@@ -107,7 +107,7 @@ public class scrPathfinder : MonoBehaviour
 			else if (vertical)
 			{
 				prevVertical = true;
-				if (transform.position.y < Target.transform.position.y)
+				if ((transform.position.y < Target.transform.position.y || GridPosition.y == 1) && GridPosition.y != scrNodeMaster.GRID_SIZE - 1)
 					NextGridPosition += new Vector2(0, 1);
 				else
 					NextGridPosition -= new Vector2(0, 1);

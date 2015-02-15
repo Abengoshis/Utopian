@@ -1,5 +1,5 @@
 Base path: C:/Program Files (x86)/Unity/Editor/Data
-Pipe name: \\.\pipe\UnityShaderCompiler-3-205996
+Pipe name: \\.\pipe\UnityShaderCompiler-3-190572
 Cmd: getPlatforms
 Cmd: compileSnippet
   error: 2 plat 1 at (89): operands to "%" must be integral

@@ -108,6 +108,7 @@ public class scrNode : MonoBehaviour
 	float expandTimer = 0.0f;
 
 	bool ready = false;
+	bool visibleToPlayer = false;
 
 //	public List<scrEnemy> Enemies { get; private set; }
 
@@ -190,7 +191,8 @@ public class scrNode : MonoBehaviour
 
 		totalCubeCount = Cubes.Length;
 
-		GetComponent<BoxCollider>().size = new Vector3(coreSize * 4.5f, coreSize * 4.5f, 1);
+		GetComponent<BoxCollider2D>().size = new Vector2(coreSize * 4.5f, coreSize * 4.5f);
+		ChildInfo.GetComponent<CircleCollider2D>().radius = coreSize * 0.5f;
 	}
 
 	public void MakeReady()
@@ -218,10 +220,6 @@ public class scrNode : MonoBehaviour
 			if (Cubes[i] == cube)
 			{
 				scrCube cubeScript = Cubes[i].Value.GetComponent<scrCube>();
-
-				// Tell the gui which thing was destroyed.
-				scrGUI.Instance.AddToFeed("DEL frag[" + (int)cubePositionEnumerator.Current[i].x + "," + (int)cubePositionEnumerator.Current[i].y + ")" +
-				                          (cubeScript.State == scrCube.DataState.INFECTED ? "-INFECTED" : cubeScript.State == scrCube.DataState.BLOCKED ? "-NULL" : "-CLEAN"));
 
 				if (cubeScript.State == scrCube.DataState.INFECTED)
 				{
@@ -307,6 +305,9 @@ public class scrNode : MonoBehaviour
 
 	public void Link(GameObject node)
 	{
+		if (CurrentLinks >= linkedNodes.Length)
+			return;
+
 		// Set the linked gameobject.
 		linkedNodes[CurrentLinks] = node;
 
@@ -552,6 +553,11 @@ public class scrNode : MonoBehaviour
 		if (!ready)
 			return;
 
+		visibleToPlayer =  scrPlayer.Instance.transform.position.x < transform.position.x + scrNodeMaster.CELL_SIZE * 2.5f &&
+						   scrPlayer.Instance.transform.position.x > transform.position.x - scrNodeMaster.CELL_SIZE * 2.5f &&
+					       scrPlayer.Instance.transform.position.y < transform.position.y + scrNodeMaster.CELL_SIZE * 1.5f &&
+						   scrPlayer.Instance.transform.position.y > transform.position.y - scrNodeMaster.CELL_SIZE * 1.5f;
+
 		if (expandTimer < expandDuration)
 		{
 			expandTimer += Time.deltaTime;
@@ -570,30 +576,37 @@ public class scrNode : MonoBehaviour
 		}
 		else
 		{
-			// Rotate stuff.
-			float dRot = 30 / ChildCore.transform.localScale.x * Time.deltaTime;
-			//transform.Rotate(0, 0, dRot);
-
-			ChildInfo.transform.Rotate(Vector3.forward, dRot);
-
 			// Also check for destruction, but otherwise keep rotating.
 			bool allDestroyed = true;
-			for (int i = 0; i < Cubes.Length; ++i)
-			{
-				if (Cubes[i] != null)
-				{
-					Cubes[i].Value.transform.RotateAround(transform.position, Vector3.forward, dRot);
 
-					allDestroyed = false;
+			if (visibleToPlayer)
+			{
+				float dRot = 30 / ChildCore.transform.localScale.x * Time.deltaTime;
+				ChildInfo.transform.Rotate(Vector3.forward, dRot);
+				for (int i = 0; i < Cubes.Length; ++i)
+				{
+					if (Cubes[i] != null)
+					{
+						Cubes[i].Value.transform.RotateAround(transform.position, Vector3.forward, dRot);
+						allDestroyed = false;
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < Cubes.Length; ++i)
+				{
+					if (Cubes[i] != null)
+					{
+						allDestroyed = false;
+						break;
+					}
 				}
 			}
 
 			// Destroy if necessary.
 			if (allDestroyed)
 			{
-				if (!Uploading)
-					scrGUI.Instance.AddToFeed("DEL mem[" + Data.page_title + "]");
-
 				GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, transform.position, Quaternion.identity);
 				explosion.particleSystem.startColor = Color.Lerp (ChildCore.renderer.material.color, Color.white, 0.5f);
 
@@ -674,8 +687,12 @@ public class scrNode : MonoBehaviour
 				for (int i = 0; i < Cubes.Length; ++i)
 				{
 					if (Cubes[i] != null && Cubes[i].Value.GetComponent<scrCube>().State != scrCube.DataState.INFECTED)
+					{
 					    allInfected = false;
+						break;
+					}
 				}
+
 				if (allInfected)
 					Infect (0);
 
@@ -685,7 +702,6 @@ public class scrNode : MonoBehaviour
 
 	public IEnumerator Upload()
 	{		
-		scrGUI.Instance.AddToFeed("UP mem[" + Data.page_title + "]" + (FullyInfected ? "-INFECTED" : Infected ? "-PART INFECTED" : "CLEAN"));
 		Uploading = true;
 
 		// "Upload" all cubes over time.
@@ -693,9 +709,6 @@ public class scrNode : MonoBehaviour
 		{
 			if (Cubes[i] != null)
 			{
-				scrGUI.Instance.AddToFeed("UP frag[" + (int)cubePositionEnumerator.Current[i].x + "," + (int)cubePositionEnumerator.Current[i].y + ")" +
-				                          (Cubes[i].Value.GetComponent<scrCube>().State == scrCube.DataState.INFECTED ? "-INFECTED" : "-CLEAN"));
-
 				Cubes[i].Value.GetComponent<scrCube>().Upload();
 				Cubes[i] = null;
 				yield return new WaitForSeconds(1.0f);

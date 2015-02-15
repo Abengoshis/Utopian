@@ -93,6 +93,9 @@ public class scrMaster : MonoBehaviour
 		loading.SetActive(false);
 		audio.Play();
 
+		scrResults.Clear ();
+		scrResults.TimeStart = Time.time;
+
 		Loading = false;
 	}
 }

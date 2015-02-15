@@ -41,7 +41,7 @@ public class scrBulletPool : MonoBehaviour
 		}
 	}
 
-	public void Create(scrBullet.BehaviourType bulletType, Vector3 position, Vector3 direction, float speed, float damage, bool expireWhenNotVisible = false)
+	public void Create(scrBullet.BehaviourType bulletType, Vector3 position, Vector3 direction, float speed, float damage, bool expireWhenNotVisible)
 	{
 		// Check whether there are any bullets left.
 		if (available != Capacity)

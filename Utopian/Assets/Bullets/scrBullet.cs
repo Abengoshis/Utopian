@@ -14,7 +14,7 @@ public class scrBullet : MonoBehaviour
 	public bool Expired { get; private set; }
 	public bool ExpireWhenNotVisible = false;
 
-	public Vector3 Direction;
+	public Vector2 Direction;
 	public float Speed;
 	public float Damage;
 
@@ -31,7 +31,7 @@ public class scrBullet : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
-		Visible = !Expired && GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(Camera.main), collider.bounds);
+		Visible = !Expired && GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(Camera.main), collider2D.bounds);
 
 		transform.right = Direction;
 
@@ -48,7 +48,7 @@ public class scrBullet : MonoBehaviour
 			fixedUpdateBehaviour();
 	}
 
-	void OnCollisionEnter(Collision c)
+	void OnCollisionEnter2D(Collision2D c)
 	{
 		if (Visible)
 		{
@@ -59,7 +59,7 @@ public class scrBullet : MonoBehaviour
 		Expired = true;
 	}
 
-	public void Init(BehaviourType type, Vector3 position, Vector3 direction, float speed, float damage, bool expireWhenNotVisible)
+	public void Init(BehaviourType type, Vector3 position, Vector2 direction, float speed, float damage, bool expireWhenNotVisible)
 	{
 		Expired = false;
 		ExpireWhenNotVisible = expireWhenNotVisible;
@@ -82,7 +82,7 @@ public class scrBullet : MonoBehaviour
 	#region Standard
 	void StandardStart()
 	{
-		rigidbody.velocity = Direction * Speed;
+		rigidbody2D.velocity = Direction * Speed;
 	}
 
 	void StandardUpdate()

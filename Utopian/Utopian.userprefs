@@ -1,19 +1,16 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\NodeMaster\scrNodeMaster.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Release" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\scrResults.cs">
     <Files>
-      <File FileName="Assets\scrMaster.cs" Line="20" Column="7" />
-      <File FileName="Assets\EnemyMaster\scrEnemyMaster.cs" Line="38" Column="3" />
-      <File FileName="Assets\NodeMaster\Node\scrNode.cs" Line="188" Column="44" />
-      <File FileName="Assets\NodeMaster\Cube\scrCube.cs" Line="1" Column="1" />
-      <File FileName="Assets\scrWebSocketClient.cs" Line="153" Column="24" />
-      <File FileName="Assets\NodeMaster\scrNodeMaster.cs" Line="262" Column="27" />
+      <File FileName="Assets\NodeMaster\scrNodeMaster.cs" Line="431" Column="29" />
+      <File FileName="Assets\scrResults.cs" Line="38" Column="88" />
+      <File FileName="Assets\scrMaster.cs" Line="1" Column="1" />
+      <File FileName="Assets\Player\scrPlayer.cs" Line="1" Column="1" />
+      <File FileName="Assets\scrWebSocketClient.cs" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore>
-      <Breakpoint file="C:\Users\Alex\Documents\GitHub\Utopian\Utopian\Assets\scrMaster.cs" line="14" />
-    </BreakpointStore>
+    <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
 </Properties>

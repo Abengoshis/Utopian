@@ -49,15 +49,18 @@ public class scrUserEnemy : scrEnemy
 			else
 			{
 				Vector2 direction = SiegeNode.Cubes[targetCubeIndex].Value.transform.position - transform.position;
-				transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0, 0, Mathf.Rad2Deg * Mathf.Atan2(direction.y, direction.x)), 60 * Time.deltaTime);
-			}
-
-			fireTimer += Time.deltaTime * fireRate;
-			if (fireTimer >= 1)
-			{
-				fireTimer = 0;
-
-				scrEnemyMaster.BulletPool.Create (scrBullet.BehaviourType.STANDARD, transform.position, transform.right, 30, 1);
+				transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0, 0, Mathf.Rad2Deg * Mathf.Atan2(direction.y, direction.x)), 180 * Time.deltaTime);
+			
+				if (direction.magnitude < scrNodeMaster.CELL_SIZE)
+				{
+					fireTimer += Time.deltaTime * fireRate;
+					if (fireTimer >= 1)
+					{
+						fireTimer = 0;
+						
+						scrEnemyMaster.BulletPool.Create (scrBullet.BehaviourType.STANDARD, transform.position, transform.right, 80, 1, false);
+					}
+				}
 			}
 		}
 		// If not sieging, check for a node to siege.
@@ -65,14 +68,25 @@ public class scrUserEnemy : scrEnemy
 		{
 			// Aim towards the player.
 			Vector2 direction = scrPlayer.Instance.transform.position - transform.position;
-			transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0, 0, Mathf.Rad2Deg * Mathf.Atan2(direction.y, direction.x)), 60 * Time.deltaTime);
+			transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0, 0, Mathf.Rad2Deg * Mathf.Atan2(direction.y, direction.x)), 180 * Time.deltaTime);
+
+			if (direction.magnitude < scrNodeMaster.CELL_SIZE)
+			{
+				fireTimer += Time.deltaTime * fireRate;
+				if (fireTimer >= 1)
+				{
+					fireTimer = 0;
+					
+					scrEnemyMaster.BulletPool.Create (scrBullet.BehaviourType.STANDARD, transform.position, transform.right, 80, 1, false);
+				}
+			}
 
 			// Get nodes that are close by.
-			Collider[] nearNodes = Physics.OverlapSphere(transform.position, scrNodeMaster.CELL_SIZE, 1 << LayerMask.NameToLayer("Node"));
+			Collider2D[] nearNodes = Physics2D.OverlapCircleAll(transform.position, scrNodeMaster.CELL_SIZE, 1 << LayerMask.NameToLayer("Node"));
 
 			// Get a near node that is clean.
 			scrNode clean = null;
-			foreach (Collider c in nearNodes)
+			foreach (Collider2D c in nearNodes)
 			{
 				scrNode n = c.GetComponent<scrNode>();
 				if (!n.Infected && !n.Blocked)

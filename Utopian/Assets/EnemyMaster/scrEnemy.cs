@@ -32,6 +32,11 @@ public class scrEnemy : MonoBehaviour
 
 		Expired = false;
 	}
+
+	public void DestroyImmediate()
+	{
+		damageTimer = DamageToDestroy;
+	}
 	
 	// Update is called once per frame
 	protected virtual void Update ()
@@ -47,7 +52,6 @@ public class scrEnemy : MonoBehaviour
 				explosion.particleSystem.startColor = ExplosionColour;
 			}
 
-			scrGUI.Instance.AddToFeed("DEL " + Name);
 			Expired = true;
 
 			if (DestroyOnExpire)
@@ -77,7 +81,7 @@ public class scrEnemy : MonoBehaviour
 		}
 	}
 
-	void OnCollisionEnter(Collision c)
+	void OnCollisionEnter2D(Collision2D c)
 	{
 		if (c.gameObject.layer == LayerMask.NameToLayer("PBullet"))
 		{

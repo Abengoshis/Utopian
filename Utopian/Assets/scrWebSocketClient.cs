@@ -83,16 +83,12 @@ public class scrWebSocketClient : MonoBehaviour
 		{
 			if (e.Type == Opcode.Text)
 			{
-				Debug.Log ("Text message received.");
-
 				ReadMessage(e.Data);
-
 				return;
 			}
 
 			if (e.Type == Opcode.Binary)
 			{
-				Debug.Log ("Binary message received.");
 				return;
 			}
 		};
@@ -128,38 +124,51 @@ public class scrWebSocketClient : MonoBehaviour
 	{
 		Dictionary<string, object> messageData = JsonConvert.DeserializeObject<Dictionary<string, object>>(data);
 
-		// Filter to only "Main" value of "ns", which are normal page edits. 
-		if ((string)messageData["ns"] == "Main" && (string)messageData["action"] == "edit" && System.Convert.ToInt32(messageData["change_size"]) != 0 && (bool)messageData["is_minor"] == false)
-		{
-			// Create a message from the message data.
-			Message message = new Message();
-			message.page_title = (string)messageData["page_title"];
-			message.summary = (string)messageData["summary"];
-			message.url = (string)messageData["url"];
-			message.change_size = System.Convert.ToInt32(messageData["change_size"]);
-			message.user = (string)messageData["user"];
-			message.is_anon = (bool)messageData["is_anon"];
-			message.is_bot = (bool)messageData["is_bot"];
-
-			// Get the time the message was sent.
-			message.time = System.DateTime.Now.ToString("HH:mm");
-
-			if (messageData.ContainsKey("geo_ip"))
-			{
-				message.geo = JsonConvert.DeserializeObject<GeoData>(messageData["geo_ip"].ToString());
-			}
-			else
-			{
-				message.geo = null;
-			}
-
-			messagesAccumulated.Enqueue (message);
-		}
-		else if ((string)messageData["page_title"] == "Special:Log/newusers")
+		// Check for new users.
+		if ((string)messageData["page_title"] == "Special:Log/newusers")
 		{
 			Message message = new Message();
 			message.user = (string)messageData["user"];
 			messagesAccumulated.Enqueue(message);
+
+			scrResults.Users.Add (message.user);
+		}
+		else
+		{
+			// Filter to only "Main" value of "ns", which are normal page edits. 
+			if ((string)messageData["ns"] == "Main" && (string)messageData["action"] == "edit" && System.Convert.ToInt32(messageData["change_size"]) != 0 && (bool)messageData["is_minor"] == false)
+			{
+				// Create a message from the message data.
+				Message message = new Message();
+				message.page_title = (string)messageData["page_title"];
+				message.summary = (string)messageData["summary"];
+				message.url = (string)messageData["url"];
+				message.change_size = System.Convert.ToInt32(messageData["change_size"]);
+				message.user = (string)messageData["user"];
+				message.is_anon = (bool)messageData["is_anon"];
+				message.is_bot = (bool)messageData["is_bot"];
+
+				// Get the time the message was sent.
+				message.time = System.DateTime.Now.ToString("HH:mm");
+
+				if (messageData.ContainsKey("geo_ip"))
+				{
+					message.geo = JsonConvert.DeserializeObject<GeoData>(messageData["geo_ip"].ToString());
+				}
+				else
+				{
+					message.geo = null;
+				}
+
+				messagesAccumulated.Enqueue (message);
+
+				if (message.is_anon)
+					++scrResults.AnonymousEditCount;
+				else if (message.is_bot)
+					++scrResults.BotEditCount;
+				else
+					++scrResults.RegisteredEditCount;
+			}
 		}
 	}
 }

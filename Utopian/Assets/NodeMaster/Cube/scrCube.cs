@@ -43,6 +43,11 @@ public class scrCube : MonoBehaviour
 		renderer.material = scrNodeMaster.Instance.MatCubeInfected;
 	}
 
+	public void DestroyImmediate()
+	{
+		damageTimer = damageToDestroy;
+	}
+
 	public void Init(LinkedListNode<GameObject> cube, scrNode parent, Vector3 position, DataState state)
 	{
 		transform.position = position;
@@ -122,7 +127,7 @@ public class scrCube : MonoBehaviour
 			}
 		}
 
-		if (damageTimer > damageToDestroy)
+		if (damageTimer >= damageToDestroy)
 		{
 			GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, transform.position, Quaternion.identity);
 			explosion.particleSystem.startColor = Color.Lerp (renderer.material.GetColor("_GlowColor"), Color.white, 0.5f);
@@ -161,7 +166,7 @@ public class scrCube : MonoBehaviour
 		}
 	}
 
-	void OnCollisionEnter(Collision c)
+	void OnCollisionEnter2D(Collision2D c)
 	{
 		if (c.gameObject.layer == LayerMask.NameToLayer("PBullet") || c.gameObject.layer == LayerMask.NameToLayer("EBullet"))
 		{

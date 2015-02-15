@@ -10,7 +10,7 @@ public class scrGUI : MonoBehaviour
 
 	public GUISkin Skin;
 
-	GameObject[] feedItems;
+	Text[] feedItems;
 
 
 	// Use this for initialization
@@ -19,14 +19,13 @@ public class scrGUI : MonoBehaviour
 		Instance = this;
 		GUICanvas = this.GetComponent<Canvas>();
 
-		feedItems = new GameObject[10];
-		feedItems[0] = transform.Find ("FeedItem").gameObject;
+		feedItems = new Text[20];
+		feedItems[0] = transform.Find ("FeedItem").gameObject.GetComponent<Text>();
 		for (int i = 1; i < feedItems.Length; ++i)
 		{
-			feedItems[i] = (GameObject)Instantiate(feedItems[0], feedItems[i - 1].transform.position - new Vector3(0, 18, 0), Quaternion.identity);
+			feedItems[i] = ((GameObject)Instantiate(feedItems[0].gameObject, feedItems[i - 1].transform.position - new Vector3(0, 18, 0), Quaternion.identity)).GetComponent<Text>();
 			feedItems[i].transform.SetParent(transform);
 			feedItems[i].transform.localScale = feedItems[0].transform.localScale;
-			feedItems[i].GetComponent<Text>().color = Color.white * (1 - (float)i / feedItems.Length);
 		}
 	}
 	
@@ -38,13 +37,15 @@ public class scrGUI : MonoBehaviour
 
 	}
 
-	public void AddToFeed(string text)
+	public void AddToFeed(string text, Color colour)
 	{
 		for (int i = feedItems.Length - 1; i > 0 ;--i)
 		{
 			feedItems[i].GetComponent<Text>().text = feedItems[i - 1].GetComponent<Text>().text;
+			feedItems[i].GetComponent<Text>().color = feedItems[i - 1].GetComponent<Text>().color * (1 - (float)i / (feedItems.Length * 10));
 		}
 		feedItems[0].GetComponent<Text>().text = text;
+		feedItems[0].GetComponent<Text>().color = colour;
 	}
 
 	public void DrawOutlinedText(string text, Vector3 viewportPosition, Color interior, Color outline, float thickness)
