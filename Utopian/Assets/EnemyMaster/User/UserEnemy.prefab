@@ -387,8 +387,8 @@ AudioSource:
   serializedVersion: 3
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: .200000003
-  m_Pitch: 1
+  m_Volume: .800000012
+  m_Pitch: 1.20000005
   Loop: 0
   Mute: 0
   Priority: 128
@@ -527,9 +527,9 @@ MonoBehaviour:
   Speed: 15
   ExplosionPrefab: {fileID: 131230, guid: c9cfdfdad4322fa429ceccd868652e59, type: 2}
   ExplosionColour: {r: 1, g: .817623913, b: .382352948, a: 1}
-  FireSound: {fileID: 8300000, guid: 415d4f99097993642941cb56dd686411, type: 3}
-  DestroyOnExpire: 0
-  DamageToDestroy: 1
+  FireSound: {fileID: 8300000, guid: b1aa1e178108c5646afc1c2dadd54a61, type: 3}
+  DestroyOnExpire: 1
+  DamageToDestroy: 10
 --- !u!1001 &100100000
 Prefab:
   m_ObjectHideFlags: 1

@@ -94,7 +94,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 322c7040e77b36e4f819c280dd8049e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Speed: 50
+  Speed: 20
   GridPosition: {x: -1, y: -1}
   NextGridPosition: {x: -1, y: -1}
   Target: {fileID: 0}

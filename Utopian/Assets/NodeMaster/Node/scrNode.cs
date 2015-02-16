@@ -84,7 +84,7 @@ public class scrNode : MonoBehaviour
 	public bool Uploading { get; private set; }
 	float infectionPulseDelay = 5.0f;
 	float infectionPulseTimer = 0.0f;
-	int infectedCubeCount = 0;
+	public int InfectedCubeCount = 0;	// Echh...if only friend classes existed in C#. Almost all of these public variables are due to rushing.
 
 	GameObject[] linkedNodes = new GameObject[LINKS_MAX];
 	LineRenderer[] links = new LineRenderer[LINKS_MAX];
@@ -97,11 +97,13 @@ public class scrNode : MonoBehaviour
 	List<Vector3[]>.Enumerator cubePositionEnumerator;	// Used when constructing the node to grab the cube positions without needing to iterate the list.
 	int cubePositionIndex = 0;	// Used when constructing the node to grab cubes from the cube positions.
 	int totalCubeCount = 0;
+	public int CellX { get; private set; }
+	public int CellY { get; private set; }
 
 	string[] words = new string[0];
 	int wordIndex = 0;
 	float spawnDelay = 10.0f;
-	float spawnDelayPerCharacter = 5.0f;
+	float spawnDelayPerCharacter = 3.0f;
 	float spawnTimer = 0;
 
 	float expandDuration = 2.0f;
@@ -116,6 +118,8 @@ public class scrNode : MonoBehaviour
 	public GameObject ChildInfo { get; private set; }
 	public GameObject[] ChildData { get; private set; }
 	public GameObject ExplosionPrefab;
+
+	public AudioClip UploadCubeSound;
 
 	public void Init(LinkedListNode<GameObject> node, Message data, int coreSize, bool infected)
 	{
@@ -176,12 +180,12 @@ public class scrNode : MonoBehaviour
 			StartCoroutine(Parse ());
 
 			infectionPulseDelay = PULSE_DELAY_MAX * (1 - (coreSize - 1) / CORE_SIZE_MAX);
-			infectedCubeCount = Cubes.Length;
+			InfectedCubeCount = Cubes.Length;
 			ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreInfected;
 		}
 		else
 		{
-			infectedCubeCount = 0;
+			InfectedCubeCount = 0;
 			ChildCore.renderer.material = Blocked ? scrNodeMaster.Instance.MatCoreBlocked : scrNodeMaster.Instance.MatCoreUninfected;
 		}
 
@@ -193,6 +197,8 @@ public class scrNode : MonoBehaviour
 
 	public void MakeReady()
 	{
+		CellX = scrNodeMaster.ToCellSpace(transform.position.x);
+		CellY = scrNodeMaster.ToCellSpace(transform.position.y);
 		ready = true;
 	}
 	
@@ -224,10 +230,10 @@ public class scrNode : MonoBehaviour
 				bool changeState = false;
 				if (cubeInfected)	// Destroy an infected cube, check for disinfection.
 				{
-					--infectedCubeCount;
+					--InfectedCubeCount;
 
 					// No longer infected.
-					if (infectedCubeCount == 0)
+					if (InfectedCubeCount == 0)
 					{
 						Infected = false;
 						changeState = true;
@@ -235,7 +241,7 @@ public class scrNode : MonoBehaviour
 				}
 				else // Destroyed a non-infected cube, check for full infection.
 				{
-					if (infectedCubeCount == totalCubeCount)
+					if (InfectedCubeCount == totalCubeCount && InfectedCubeCount != 0)
 					{
 						Infect (0);
 						changeState = true;
@@ -249,12 +255,12 @@ public class scrNode : MonoBehaviour
 						if (Blocked)
 						{
 							ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreBlocked;
-							scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = scrNodeMaster.CellState.BLOCKED;
+							scrNodeMaster.CellStates[CellX, CellY] = scrNodeMaster.CellState.BLOCKED;
 						}
 						else
 						{
 							ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreUninfected;
-							scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = scrNodeMaster.CellState.CLEAN;
+							scrNodeMaster.CellStates[CellX, CellY] = scrNodeMaster.CellState.CLEAN;
 						}
 					}
 				}
@@ -272,12 +278,12 @@ public class scrNode : MonoBehaviour
 		Data = message;
 
 		// Infect all cubes immediately.
-		infectedCubeCount = totalCubeCount;
 		foreach (LinkedListNode<GameObject> cube in Cubes)
 		{
 			if (cube != null)
 				cube.Value.GetComponent<scrCube>().InfectImmediate();
 		}
+		InfectedCubeCount = totalCubeCount;
 
 		Infect (0);
 	}
@@ -292,11 +298,10 @@ public class scrNode : MonoBehaviour
 			{
 				Cubes[i].Value.GetComponent<scrCube>().Infect();
 				++infect;
-				++infectedCubeCount;
 			}
 		}
 
-		if (infectedCubeCount == totalCubeCount)
+		if (InfectedCubeCount == totalCubeCount)
 		{
 			FullyInfected = true;
 			
@@ -308,15 +313,15 @@ public class scrNode : MonoBehaviour
 			
 			scrNodeMaster.Instance.CreateLinks(Node);
 
-			scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = scrNodeMaster.CellState.INFECTED;
+			scrNodeMaster.CellStates[CellX, CellY] = scrNodeMaster.CellState.INFECTED;
 		}
 		else
 		{
 			// Partially infected.
 			if (Blocked)
-				scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = scrNodeMaster.CellState.INFECTING_BLOCKED;
+				scrNodeMaster.CellStates[CellX, CellY] = scrNodeMaster.CellState.INFECTING_BLOCKED;
 			else
-				scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = scrNodeMaster.CellState.INFECTING_CLEAN;
+				scrNodeMaster.CellStates[CellX, CellY] = scrNodeMaster.CellState.INFECTING_CLEAN;
 
 			ChildCore.renderer.material.color = Color.Lerp (Blocked ? scrNodeMaster.ColCoreBlocked : scrNodeMaster.ColCoreUninfected, scrNodeMaster.ColCoreInfected, GetInfectionAmount());
 		}
@@ -330,7 +335,7 @@ public class scrNode : MonoBehaviour
 			//int chess = Mathf.Max ((int)Mathf.Abs ((linkedNodes[i].transform.position.x - transform.position.x) / scrNodeMaster.CELL_SIZE),
 			                   //    (int)Mathf.Abs (linkedNodes[i].transform.position.y - transform.position.y) / scrNodeMaster.CELL_SIZE);
 
-			linkedNodes[i].GetComponent<scrNode>().Infect(Mathf.CeilToInt((infectedCubeCount * 0.05f)));
+			linkedNodes[i].GetComponent<scrNode>().Infect(Mathf.CeilToInt((InfectedCubeCount * 0.05f)));
 			links[i].SetColors(scrNodeMaster.ColCoreInfected,
 			                   Color.Lerp(linkedNodes[i].GetComponent<scrNode>().Blocked ? scrNodeMaster.ColCoreBlocked : scrNodeMaster.ColCoreUninfected,
 			                              scrNodeMaster.ColCoreInfected, linkedNodes[i].GetComponent<scrNode>().GetInfectionAmount()));
@@ -515,23 +520,17 @@ public class scrNode : MonoBehaviour
 				}
 
 				// Choose an enemy based on word length.
-				if (words[wordIndex].Length > 6) // 6+ letter enemy.
+				if (words[wordIndex].Length > 4) // 6+ letter enemy.
 				{
 					scrSnakeEnemy snake = ((GameObject)Instantiate (scrEnemyMaster.Instance.SnakeEnemyPrefab, transform.position, Quaternion.identity)).GetComponent<scrSnakeEnemy>();
 					snake.Name = words[wordIndex];
 					snake.Init ();
 				}
-				else if (words[wordIndex].Length > 3) // 4->6 letter enemy.
-				{
-
-				}
-				else if (words[wordIndex].Length > 1) // 2->3 letter enemy.
-				{
-
-				}
 				else // Character enemy.
 				{
-
+					scrWordEnemy word = ((GameObject)Instantiate (scrEnemyMaster.Instance.WordEnemyPrefab, transform.position, Quaternion.identity)).GetComponent<scrWordEnemy>();
+					word.Name = words[wordIndex];
+					word.Init();
 				}
 
 				++wordIndex;
@@ -549,7 +548,7 @@ public class scrNode : MonoBehaviour
 	public float GetInfectionAmount()
 	{
 		if (Cubes != null)
-			return (float)infectedCubeCount / totalCubeCount;
+			return (float)InfectedCubeCount / totalCubeCount;
 
 		return 0;
 	}
@@ -587,10 +586,11 @@ public class scrNode : MonoBehaviour
 		if (!ready)
 			return;
 
-		VisibleToPlayer =  scrPlayer.Instance.transform.position.x < transform.position.x + scrNodeMaster.CELL_SIZE * 2.5f &&
-						   scrPlayer.Instance.transform.position.x > transform.position.x - scrNodeMaster.CELL_SIZE * 2.5f &&
-					       scrPlayer.Instance.transform.position.y < transform.position.y + scrNodeMaster.CELL_SIZE * 1.5f &&
-						   scrPlayer.Instance.transform.position.y > transform.position.y - scrNodeMaster.CELL_SIZE * 1.5f;
+		VisibleToPlayer = !(scrPlayer.Instance.CellX > CellX + 2 || scrPlayer.Instance.CellX < CellX - 2 ||
+		                    scrPlayer.Instance.CellY > CellY + 1 || scrPlayer.Instance.CellY < CellY - 1);
+
+		if (VisibleToPlayer)
+			ChildCore.transform.Rotate(0, 0, Time.deltaTime * 20);
 
 		if (expandTimer < expandDuration)
 		{
@@ -627,10 +627,12 @@ public class scrNode : MonoBehaviour
 			// Destroy if necessary.
 			if (totalCubeCount == 0)
 			{
+				Uploading = false;
+
 				GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, transform.position, Quaternion.identity);
 				explosion.particleSystem.startColor = Color.Lerp (ChildCore.renderer.material.color, Color.white, 0.5f);
 
-				scrNodeMaster.CellStates[scrNodeMaster.ToCellSpace(transform.position.x), scrNodeMaster.ToCellSpace(transform.position.y)] = scrNodeMaster.CellState.FREE;
+				scrNodeMaster.CellStates[CellX, CellY] = scrNodeMaster.CellState.FREE;
 				scrNodeMaster.Instance.DeactivateNode(Node);
 				return;
 			}
@@ -702,6 +704,8 @@ public class scrNode : MonoBehaviour
 	{		
 		Uploading = true;
 
+		audio.Play();
+
 		// "Upload" all cubes over time.
 		for (int i = 0; i < Cubes.Length; ++i)
 		{
@@ -710,9 +714,13 @@ public class scrNode : MonoBehaviour
 				--totalCubeCount;
 				Cubes[i].Value.GetComponent<scrCube>().Upload();
 				Cubes[i] = null;
-				yield return new WaitForSeconds(1.0f);
+				audio.PlayOneShot(UploadCubeSound);
+				yield return new WaitForSeconds(0.5f);
 			}
 		}
+
+		// Give the audio a buffer time in case a cube sound is still playing.
+		yield return new WaitForSeconds(0.6f);
 
 		Uploading = false;
 	}

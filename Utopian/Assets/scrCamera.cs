@@ -42,7 +42,7 @@ public class scrCamera : MonoBehaviour
 			int ux, uy;
 			ux = scrNodeMaster.ToCellSpace(scrNodeMaster.Instance.NodeBeingUploaded.transform.position.x);
 			uy = scrNodeMaster.ToCellSpace(scrNodeMaster.Instance.NodeBeingUploaded.transform.position.y);
-			
+
 			t.SetPixel(ux, uy, t.GetPixel(ux, uy) + new Color(0, 1.0f, 0, 0));
 		}
 

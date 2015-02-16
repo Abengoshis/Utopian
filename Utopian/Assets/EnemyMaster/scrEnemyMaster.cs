@@ -11,6 +11,7 @@ public class scrEnemyMaster : MonoBehaviour
 	
 	public GameObject UserEnemyPrefab;
 	public GameObject SnakeEnemyPrefab;
+	public GameObject WordEnemyPrefab;
 
 	Queue<Message> messageQueue = new Queue<Message>();
 

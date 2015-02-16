@@ -55,8 +55,9 @@ public class scrAICore : MonoBehaviour
 					if (!ArmLocked)
 					{
 						ArmLocked = true;
+						ChildFocus.audio.pitch = 1;
 
-						if (!scrNodeMaster.Instance.NodeBeingUploaded.Uploading)
+						if (scrNodeMaster.Instance.NodeBeingUploaded.gameObject.activeSelf && !scrNodeMaster.Instance.NodeBeingUploaded.Uploading)
 							StartCoroutine(scrNodeMaster.Instance.NodeBeingUploaded.Upload());
 					}
 				}
@@ -64,8 +65,16 @@ public class scrAICore : MonoBehaviour
 				{
 					ArmLocked = false;
 
+					Vector3 prevPos = ChildFocus.transform.position;
+
 					// Move focus up arm until it reaches the node to upload.
-					ChildFocus.transform.position = Vector3.MoveTowards(ChildFocus.transform.position, scrNodeMaster.Instance.NodeBeingUploaded.transform.position, 20 * Time.deltaTime);
+					ChildFocus.transform.position = Vector3.MoveTowards(ChildFocus.transform.position, scrNodeMaster.Instance.NodeBeingUploaded.transform.position, 80 * Time.deltaTime);
+
+					// Check if moving away or towards the core.
+					if (ChildFocus.transform.position.magnitude > prevPos.magnitude)
+						ChildFocus.audio.pitch = 1.2f;
+					else
+						ChildFocus.audio.pitch = 0.8f;
 				}
 			}
 			else
@@ -73,7 +82,7 @@ public class scrAICore : MonoBehaviour
 				ArmLocked = false;
 
 				// Rotate so that the arms align with the node.
-				transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0, 0, rotation), 10 * Time.deltaTime);
+				transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0, 0, rotation), 80 * Time.deltaTime);
 			}
 		}
 	}

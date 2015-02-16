@@ -46,7 +46,7 @@ public class scrSnakeEnemy : scrEnemy
 	{
 		if (Expired)
 		{
-			// Destroy self.
+			// Destroy segments.
 			if (ExplosionPrefab != null)
 			{
 				for (int i = 0; i < Segments.Length; ++i)
@@ -74,6 +74,7 @@ public class scrSnakeEnemy : scrEnemy
 				fireTimer = 0;
 				
 				scrEnemyMaster.BulletPool.Create (scrBullet.BehaviourType.STANDARD, transform.position, direction.normalized, 80, 1, false);
+				audio.PlayOneShot(FireSound);
 			}
 		}
 		else

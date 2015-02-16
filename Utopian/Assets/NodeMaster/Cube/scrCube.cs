@@ -33,6 +33,11 @@ public class scrCube : MonoBehaviour
 	{
 		StatePrev = State;
 		State = DataState.INFECTED;
+		if (Parent != null)
+		{
+			++Parent.InfectedCubeCount;
+			Parent.Infect (0);			// Really hacky, will need to reprogram.
+		}
 	}
 	
 	// Immediately infect.
@@ -41,6 +46,11 @@ public class scrCube : MonoBehaviour
 		State = DataState.INFECTED;
 		infectionTransitionCompleted = true;
 		renderer.material = scrNodeMaster.Instance.MatCubeInfected;
+		if (Parent != null)
+		{
+			++Parent.InfectedCubeCount;
+			Parent.Infect (0);			// Really hacky, will need to reprogram.
+		}
 	}
 
 	public void DestroyImmediate()
@@ -180,8 +190,15 @@ public class scrCube : MonoBehaviour
 		if (c.gameObject.layer == LayerMask.NameToLayer("PBullet") || c.gameObject.layer == LayerMask.NameToLayer("EBullet"))
 		{
 			scrBullet bullet = c.gameObject.GetComponent<scrBullet>();
-		
-			damageTimer += bullet.Damage;
+			if (bullet.Infecter && State != DataState.INFECTED)
+			{
+				Infect ();
+			}
+			else
+			{
+				damageTimer += bullet.Damage;
+			}
+
 		}
 	}
 }

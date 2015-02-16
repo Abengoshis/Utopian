@@ -90,5 +90,81 @@ public class scrEnemy : MonoBehaviour
 			damageTimer += bullet.Damage;
 		}
 	}
+
+	protected Vector3 GetInterceptDirection(Vector3 source, Rigidbody2D target, float bulletSpeed)
+	{
+		Vector3 pos = target.position;
+		Vector3 vel = target.velocity;
+		
+		// Get direction.
+		Vector3 direction = pos - source;
+		
+		// Get components of quadratic equation.
+		float a = vel.x * vel.x + vel.y * vel.y + vel.z * vel.z - bulletSpeed * bulletSpeed;
+		if (a == 0)
+			a = 0.001f;
+		float b = 2 * (vel.x * direction.x + vel.y * direction.y + vel.z * direction.z);
+		float c = direction.x * direction.x + direction.y * direction.y + direction.z * direction.z;
+		
+		// Solve quadratic equation.
+		bool solved = false;
+		float q0 = 0.0f;
+		float q1 = 0.0f;
+		float eps = 0.00001f;
+		if (Mathf.Abs(a) < eps)
+		{
+			if (Mathf.Abs(b) < eps)
+			{
+				if (Mathf.Abs(c) < eps)
+				{
+					solved = false;
+				}
+			}
+			else
+			{
+				q0 = -c / b;
+				q1 = -c / b;
+				solved = false;
+			}
+		}
+		else
+		{
+			float d = b * b - 4 * a * c;
+			if (d >= 0)
+			{
+				d = Mathf.Sqrt(d);
+				a = 2 * a;
+				q0 = (-b + d) / a;
+				q1 = (-b - d) / a;
+				solved = true;
+			}
+		}
+		
+		// Find smallest positive solution.
+		Vector3 solution = Vector2.zero;
+		if (solved)
+		{
+			solved = false;
+			float q = Mathf.Min(q0, q1);
+			if (q < 0)
+			{
+				q = Mathf.Max(q0, q1);
+			}
+			if (q > 0)
+			{
+				solution = pos + vel * q;
+				solved = true;
+			}
+		}
+		
+		if (!solved)
+		{
+			// Fallback equation.
+			float t = direction.magnitude / bulletSpeed;
+			solution = pos + vel * t;
+		}
+		
+		return (solution - transform.position).normalized;
+	}
 	
 }

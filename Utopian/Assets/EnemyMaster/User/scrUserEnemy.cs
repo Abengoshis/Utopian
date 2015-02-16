@@ -18,9 +18,6 @@ public class scrUserEnemy : scrEnemy
 
 		pathfinder = GetComponent<scrPathfinder>();
 		pathfinder.Target = scrPlayer.Instance.gameObject;
-
-		DamageToDestroy = 10;
-		DestroyOnExpire = true;
 	}
 
 	// Update is called once per frame
@@ -112,8 +109,8 @@ public class scrUserEnemy : scrEnemy
 	{
 		for (int i = 0; i < 3; ++i)
 		{
-			scrEnemyMaster.BulletPool.Create (scrBullet.BehaviourType.STANDARD, transform.position, transform.right, 80, 1, false);
-			//audio.PlayOneShot(FireSound);
+			audio.PlayOneShot(FireSound);
+			scrEnemyMaster.BulletPool.Create (scrBullet.BehaviourType.STANDARD, transform.position, transform.right, 120, 1, false, true);
 			yield return new WaitForSeconds(0.1f);
 		}
 	}

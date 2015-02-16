@@ -6,6 +6,7 @@ public class scrMaster : MonoBehaviour
 {
 	public static scrMaster Instance { get; private set; }
 	public static bool Loading { get; private set; }
+	public static bool GameOver { get; private set; }
 
 	private GameObject loading;
 	private Slider loadingSlider;
@@ -15,13 +16,17 @@ public class scrMaster : MonoBehaviour
 	public bool Transitioning { get; private set; }	// If between waves or not.
 	private Text transitionText, transitionTimeText;
 	private Slider waveSlider;
-	private string[] transitionPhrases = new string[] { "PURGING BUFFERS", "RETARGETING AI", "PREPARING SCANNER", "STARTING CRAWL" };
+	private string[] transitionPhrases = new string[] { "PURGING BUFFERS", "RETARGETING AI", "STARTING CRAWL" };
 
 	public float TransitionDuration { get; private set; }
 	public float TransitionTimer { get; private set; }
 
 	public float WaveDuration { get; private set; }
 	public float WaveTimer { get; private set; }
+
+
+	//public AudioClip TextSound;
+	public AudioClip TextBlipSound;
 
 
 	// Use this for initialization
@@ -32,6 +37,7 @@ public class scrMaster : MonoBehaviour
 		GameObject guiCanvas = GameObject.Find ("GUICanvas");
 
 		loading = guiCanvas.transform.Find ("Loading").gameObject;
+		loading.gameObject.SetActive(true);
 		loadingSlider = loading.transform.Find ("Slider").GetComponent<Slider>();
 		loadingAmount = 0;
 
@@ -53,14 +59,21 @@ public class scrMaster : MonoBehaviour
 	{
 		if (Input.GetButton("Cancel"))
 		{
-			//scrWebSocketClient.Instance.Close();
+			scrWebSocketClient.Instance.Close();
 
-			//Application.LoadLevel(0);
+			ItsGameOverMan();
 		}
+
+		if (GameOver)
+			return;
 
 		if (Loading)
 		{
-			loading.transform.Find ("Text").transform.eulerAngles = new Vector3(0, 0, Mathf.Sin (Time.time) * 5);
+			if (!loading.GetComponentInChildren<scrScrollText>().Running)
+			{
+				loading.GetComponentInChildren<scrScrollText>().Restart();
+			}
+
 			loadingSlider.value = Mathf.Lerp (loadingSlider.value, loadingAmount, 0.5f);
 		}
 		else
@@ -75,13 +88,36 @@ public class scrMaster : MonoBehaviour
 
 					// Hide the transition text.
 					transitionText.gameObject.SetActive(false);
+
+					// Inject infected nodes based on the wave number.
+					scrNodeMaster.Instance.InjectInfectedMessages(100);
 				}
 				else
 				{
-					transitionText.text = transitionPhrases[(int)(TransitionTimer / TransitionDuration * transitionPhrases.Length)]; 
+					int whole = (int)(TransitionTimer / TransitionDuration * transitionPhrases.Length);
+					float part = (TransitionTimer / TransitionDuration * transitionPhrases.Length) - whole;
+
+					int substringLength = (int)(part * 55);// Where the magic number = number of characters to fill within the time. The text speed essentially.
+
+					string phrase = transitionPhrases[whole];
+					transitionText.text = phrase.Substring(0, (int)Mathf.Min (substringLength, phrase.Length));
+
+					if (substringLength > phrase.Length)
+					{
+						audio.Stop ();
+					}
+					else
+					{
+						if (!audio.isPlaying)
+							audio.Play ();
+					}
 				}
 
-				transitionTimeText.text = "Prepare for next wave! <" + ((int)((TransitionDuration - TransitionTimer) * 10) * 0.1f).ToString() + " seconds>";
+				transitionTimeText.text = "Prepare for next wave! <" + (TransitionDuration - TransitionTimer).ToString("F1") + " seconds>";
+				if (TransitionTimer % 0.4f < 0.2f)
+					transitionTimeText.color = Color.white;
+				else
+					transitionTimeText.color = Color.grey;
 			}
 			else
 			{
@@ -95,7 +131,6 @@ public class scrMaster : MonoBehaviour
 					transitionText.gameObject.SetActive(true);
 
 					// Reset enemies, nodes and ai core.
-
 					StartCoroutine(scrNodeMaster.Instance.Purge());
 
 				}
@@ -161,14 +196,37 @@ public class scrMaster : MonoBehaviour
 		scrPlayer.Instance.enabled = true;
 		scrNodeMaster.Instance.enabled = true;
 		scrEnemyMaster.Instance.enabled = true;
+		scrMusicMaster.Instance.enabled = true;
+
+		scrFadeTransition.Instance.FadeIn();
 
 		// Hide the loading screen.
 		loading.SetActive(false);
-		audio.Play();
 
 		scrResults.Clear ();
 		scrResults.TimeStart = Time.time;
 
 		Loading = false;
+	}
+
+	public void ItsGameOverMan()
+	{
+		scrResults.TimeEnd = Time.time;
+
+		scrNodeMaster.Instance.Purge();
+
+		// Disable system scripts.
+		scrPlayer.Instance.enabled = false;
+		scrNodeMaster.Instance.enabled = false;
+		scrEnemyMaster.Instance.enabled = false;
+		scrMusicMaster.Instance.enabled = false;
+
+		scrFadeTransition.Instance.FadeOut(5.0f);
+		Invoke("GoToResults", 5.0f);
+	}
+
+	void GoToResults()
+	{
+		Application.LoadLevel("Results");
 	}
 }

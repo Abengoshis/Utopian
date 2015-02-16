@@ -12,7 +12,7 @@ public class scrPlayer : MonoBehaviour
 	float simulatedCursorRadius = 80.0f;
 
 	// --
-	float damageToDestroy = 3.0f;
+	float damageToDestroy = 16.0f;
 	float damageTimer = 0;
 	Renderer[] renderers;
 	Color[] colours;
@@ -24,18 +24,23 @@ public class scrPlayer : MonoBehaviour
 	public Vector2 MoveDirection { get; private set; }
 	public Vector2 AimDirection { get; private set; }
 
+	public int CellX { get; private set; }
+	public int CellY { get; private set; }
+
 	// --
 	public AudioClip FireSound;
 	scrBulletPool bulletPool;
-	float fireRate = 20;	// Shots per second.
+	float fireRate = 16;	// Shots per second.
 	float fireTimer = 0;
 	int fireMode = 0;
 
 	public GameObject BombExplosionPrefab;
-	public int Bombs { get; private set; }
-	bool bombDeployed = false;
+	float bombDelay = 10.0f;
+	float bombTimer = 10.0f;
 
 	Vector3[] gunOffsets = new Vector3[] { new Vector3(3, 0.85f), new Vector3(3, -0.85f) };
+
+	public Transform ChildShine;
 
 	void Start ()
 	{
@@ -56,7 +61,6 @@ public class scrPlayer : MonoBehaviour
 		AimDirection = Vector2.zero;
 
 		bulletPool = GetComponent<scrBulletPool>();
-		Bombs = 3;
 
 		Screen.lockCursor = true;
 
@@ -66,25 +70,31 @@ public class scrPlayer : MonoBehaviour
 	
 	void Update ()
 	{
-		if (Input.GetKey(KeyCode.Y))
-		{
-			scrResults.TimeEnd = Time.time;
-			Application.LoadLevel("Results");
-		}
+		CellX = scrNodeMaster.ToCellSpace(transform.position.x);
+		CellY = scrNodeMaster.ToCellSpace(transform.position.y);
 
 		if (fireTimer < 1)
+		{
 			fireTimer += fireRate * Time.deltaTime;
+
+			ChildShine.GetComponent<SpriteRenderer>().color = new Color(0.4f, 1.0f, 1.0f, 0.3f * (1.0f - Mathf.Min (fireTimer, 1.0f)));
+		}
 
 		if (damageTimer >= damageToDestroy)
 		{
-			//GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, transform.position, Quaternion.identity);
-			//explosion.particleSystem.startColor = Color.Lerp (renderer.material.GetColor("_GlowColor"), Color.white, 0.5f);
-			
+			Instantiate (BombExplosionPrefab, transform.position, Quaternion.identity);
+			scrMaster.Instance.ItsGameOverMan();
+			damageTimer = 0.0f;
+			enabled = false;
 			gameObject.SetActive(false);
 		}
 		else
 		{
-			damageTimer -= Time.deltaTime;
+			if (damageTimer < 0)
+				damageTimer = 0;
+			else if (damageTimer > 0)
+				damageTimer -= Time.deltaTime * 2;
+
 
 			float t = damageTimer / damageToDestroy;
 			for(int i = 0; i < renderers.Length; ++i)
@@ -140,27 +150,43 @@ public class scrPlayer : MonoBehaviour
 			if (fireTimer >= 1)
 			{
 				if (fireMode == 0)
-					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.TransformPoint(gunOffsets[0]), transform.right, 80, 1, true);
+					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.TransformPoint(gunOffsets[0]), transform.right, 120, 1, true);
 				else
-					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.TransformPoint(gunOffsets[1]), transform.right, 80, 1, true);
+					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.TransformPoint(gunOffsets[1]), transform.right, 120, 1, true);
 
-				//audio.PlayOneShot(FireSound);
+				audio.PlayOneShot(FireSound);
 
 				fireMode = (fireMode == 0 ? 1 : 0);
 				fireTimer = 0;
 			}
 		}
 
-		if (Input.GetButtonDown ("Bomb"))
+		// Check for bomb.
+		if (bombTimer < bombDelay)
 		{
-			Instantiate(BombExplosionPrefab, transform.position, Quaternion.identity);;
-			StartCoroutine(DeployBomb(transform.position));
+			bombTimer += Time.deltaTime;
+			if (bombTimer >= bombDelay)
+			{
+				// Show bomb available graphic.
+				// Play bomb available sound.
+			}
+		}
+		else
+		{
+			if (Input.GetButtonDown ("Bomb"))
+			{
+				StartCoroutine(DeployBomb(transform.position));
+			}
 		}
 	}
 
 	IEnumerator DeployBomb(Vector3 position)
 	{
-		bombDeployed = true;
+		bombTimer = 0.0f;
+
+		// Hide bomb available graphic.
+
+		Instantiate(BombExplosionPrefab, transform.position, Quaternion.identity);
 
 		for (int i = 0; i < 4; ++i)
 		{
@@ -173,8 +199,6 @@ public class scrPlayer : MonoBehaviour
 
 			yield return new WaitForSeconds(0.3f);
 		}
-
-		bombDeployed = false;
 	}
 
 	void OnTriggerEnter2D(Collider2D c)

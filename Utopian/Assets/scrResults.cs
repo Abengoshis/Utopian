@@ -4,6 +4,8 @@ using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
 
+
+// This class could be made much better. Future me, start by removing all the .Find(...)'s.
 public class scrResults : MonoBehaviour
 {
 	// Quick 'n' dirty global variables because of time pressure.
@@ -16,6 +18,8 @@ public class scrResults : MonoBehaviour
 
 	public static string Killer = "";	// User that killed the player.
 	public static List<string> Users = new List<string>();	// Get the url with http://www.wikipedia.org/wiki/User:" + user + "\" target=\"_blank".
+
+	bool animationFinished = false;
 
 	public static void Clear()
 	{
@@ -35,30 +39,85 @@ public class scrResults : MonoBehaviour
 	{
 		Screen.lockCursor = false;
 
-		WikiPanel.Find("Title").GetComponent<Text>().text = "Over the last " + (int)((TimeEnd - TimeStart) / 60) + "m" + (int)((TimeEnd - TimeStart) % 60) + "s:";
-		WikiPanel.Find ("TotalEdits").GetComponent<Text>().text = (RegisteredEditCount + AnonymousEditCount + BotEditCount) + " edits were made to Wikipedia articles!";
-		WikiPanel.Find ("VandalEdits").GetComponent<Text>().text = ReversionEdits.Count + " edits were reversions, possibly to vandalism!";
-		WikiPanel.Find ("TotalUsers").GetComponent<Text>().text = Users.Count + " new users joined Wikipedia!";
+		WikiPanel.Find("Title").GetComponent<scrScrollText>().text = "Over the last " + (int)((TimeEnd - TimeStart) / 60) + "m" + (int)((TimeEnd - TimeStart) % 60) + "s:";
+		WikiPanel.Find ("TotalEdits").GetComponent<scrScrollText>().text = (RegisteredEditCount + AnonymousEditCount + BotEditCount) + " edits were made to Wikipedia articles!";
+		WikiPanel.Find ("VandalEdits").GetComponent<scrScrollText>().text = ReversionEdits.Count + " edits were reversions, possibly to vandalism!";
+		WikiPanel.Find ("TotalUsers").GetComponent<scrScrollText>().text = Users.Count + " new users joined Wikipedia!";
 
 
-		Transform edits = WikiPanel.Find ("TotalEdits");
+		Transform edits = WikiPanel.Find ("TotalEdits").Find ("Values");
 		edits.Find ("Registered").GetComponent<Text>().text = RegisteredEditCount + " were made by registered users.";
 		edits.Find ("Anonymous").GetComponent<Text>().text = AnonymousEditCount + " were made by anonymous users.";
 		edits.Find ("Bot").GetComponent<Text>().text = BotEditCount + " were made by bots.";
 
 		PopulateReversions();
 		PopulateUsers();
+
+		WikiPanel.Find ("TotalEdits").Find ("Values").gameObject.SetActive(false);
+		WikiPanel.Find ("VandalEdits").Find ("Values").gameObject.SetActive(false);
+		WikiPanel.Find ("TotalUsers").Find ("Values").gameObject.SetActive(false);
+
+		StartCoroutine(RunTextAnimations());
 	}
 
 	void Update()
 	{
+		if (animationFinished)
+		{
+			if (Input.GetButtonDown("Cancel"))
+			{
+				Application.LoadLevel(0);
+			}
+		}
 
+		if (Input.anyKeyDown)
+		{
+
+		}
+	}
+	
+	/// <summary>
+	/// Helper method for RunTextAnimations().
+	/// </summary>
+	void RunScrollText(Transform objectWithScrollText)
+	{
+		scrScrollText scroll = objectWithScrollText.GetComponent<scrScrollText>();
+		if (scroll != null)
+			scroll.Run ();
+	}
+
+	IEnumerator RunTextAnimations()
+	{
+		yield return new WaitForSeconds(1.0f);
+		RunScrollText(WikiPanel.Find ("Title"));
+		yield return new WaitForSeconds(1.0f);
+
+		RunScrollText(WikiPanel.Find ("TotalEdits"));
+		yield return new WaitForSeconds(2.1f);
+		WikiPanel.Find ("TotalEdits").Find ("Values").gameObject.SetActive(true);
+		audio.PlayOneShot(audio.clip);
+		yield return new WaitForSeconds(0.5f);
+
+		RunScrollText(WikiPanel.Find ("VandalEdits"));
+		yield return new WaitForSeconds(2.5f);
+		audio.PlayOneShot(audio.clip);
+		WikiPanel.Find ("VandalEdits").Find ("Values").gameObject.SetActive(true);
+		yield return new WaitForSeconds(0.5f);
+
+
+		RunScrollText(WikiPanel.Find ("TotalUsers"));
+		yield return new WaitForSeconds(1.6f);
+		audio.PlayOneShot(audio.clip);
+		WikiPanel.Find ("TotalUsers").Find ("Values").gameObject.SetActive(true);
+		yield return new WaitForSeconds(0.5f);
+
+		animationFinished = true;
 	}
 
 	void PopulateReversions()
 	{
 		// Populate reversions.
-		Transform reversionPanel = WikiPanel.Find ("VandalEdits").Find ("ScrollRect").Find ("ReversionPanel");
+		Transform reversionPanel = WikiPanel.Find ("VandalEdits").Find("Values").Find ("ScrollRect").Find ("ReversionPanel");
 
 		// Get the reversion template.
 		Transform reversion = reversionPanel.Find ("Reversion");
@@ -100,7 +159,7 @@ public class scrResults : MonoBehaviour
 	void PopulateUsers()
 	{
 		// Populate users.
-		Transform userPanel = WikiPanel.Find ("TotalUsers").Find ("ScrollRect").Find ("UserPanel");
+		Transform userPanel = WikiPanel.Find ("TotalUsers").Find ("Values").Find ("ScrollRect").Find ("UserPanel");
 		
 		// Get the user template.
 		Transform user = userPanel.Find ("User");
@@ -114,8 +173,9 @@ public class scrResults : MonoBehaviour
 			u.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 32); 
 			
 			// Change user content.
-			u.GetComponentInChildren<Text>().text = Users[i];
-			u.GetComponent<Button>().onClick.AddListener(delegate{OpenURL("http://www.wikipedia.org/wiki/User:" + Users[i] + "\" target=\"_blank");});
+			string username = Users[i];
+			u.GetComponentInChildren<Text>().text = username;
+			u.GetComponent<Button>().onClick.AddListener(delegate{OpenURL("http://www.wikipedia.org/w/index.php?title=User_talk:" + username + "&action=edit&section=new");});
 		}
 		
 		// Set the height of the user panel to scale with the amount of users.

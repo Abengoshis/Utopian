@@ -11,7 +11,7 @@ public class scrNodeMaster : MonoBehaviour
 	#region Pool Variables
 
 	const int TOTAL_NODES = 100;
-	const int TOTAL_CUBES = 10000;
+	const int TOTAL_CUBES = 5000;
 
 	// These static pools will be loaded when the player plays their first game.
 	static LinkedList<GameObject> nodePool;
@@ -42,6 +42,7 @@ public class scrNodeMaster : MonoBehaviour
 
 	#endregion
 
+	Queue<Message> infectedBufferQueue = new Queue<Message>();	// Buffer of infected cubes accumulated between transitions.
 	Queue<Message> messageQueue = new Queue<Message>();
 	bool creating = false;
 
@@ -62,8 +63,7 @@ public class scrNodeMaster : MonoBehaviour
 	public static Color ColCoreUninfected { get; private set; }
 	public static Color ColCoreInfected { get; private set; }
 
-	public GameObject ChildGrid { get; private set; }
-	public GameObject ChildSpark { get; private set; }
+	public GameObject Grid;
 
 	#region Pool Functions
 
@@ -190,9 +190,10 @@ public class scrNodeMaster : MonoBehaviour
 				if (++loops == 30)
 				{
 					loops = 0;
-					yield return new WaitForEndOfFrame();
+					break;
 				}
 			}
+			yield return new WaitForEndOfFrame();
 		}
 		
 		freePositionsCount = positions.Length;
@@ -200,6 +201,8 @@ public class scrNodeMaster : MonoBehaviour
 		for (int i = 0; i < GRID_SIZE; ++i)
 			for (int j = 0; j < GRID_SIZE; ++j)
 				CellStates[i, j] = CellState.FREE;
+
+		NodeBeingUploaded = null;
 	}
 
 	#endregion
@@ -228,10 +231,9 @@ public class scrNodeMaster : MonoBehaviour
 	{
 		Instance = this;
 
-		ChildGrid = transform.Find ("Grid").gameObject;
-		ChildGrid.transform.localScale = new Vector3(GRID_SIZE * CELL_SIZE, GRID_SIZE * CELL_SIZE, 1);
-		ChildGrid.renderer.material.SetInt("_GridSize", GRID_SIZE);
-		ChildGrid.renderer.material.SetInt("_CellSize", CELL_SIZE);
+		Grid.transform.localScale = new Vector3(GRID_SIZE * CELL_SIZE, GRID_SIZE * CELL_SIZE, 1);
+		Grid.renderer.material.SetInt("_GridSize", GRID_SIZE);
+		Grid.renderer.material.SetInt("_CellSize", CELL_SIZE);
 
 		ColCubeBlocked = MatCubeBlocked.GetColor("_GlowColor");
 		ColCubeUninfected = MatCubeUninfected.GetColor ("_GlowColor");
@@ -254,11 +256,8 @@ public class scrNodeMaster : MonoBehaviour
 	void Update ()
 	{
 		// Set the shader's player position uniform.
-		ChildGrid.renderer.material.SetFloat("_PlayerX", scrPlayer.Instance.transform.position.x);
-		ChildGrid.renderer.material.SetFloat("_PlayerY", scrPlayer.Instance.transform.position.y);
-
-		if (scrMaster.Instance.Transitioning)
-			return;
+		Grid.renderer.material.SetFloat("_PlayerX", scrPlayer.Instance.transform.position.x);
+		Grid.renderer.material.SetFloat("_PlayerY", scrPlayer.Instance.transform.position.y);
 
 		// Generate nodes as long as the queue contains messages.
 		if (messageQueue.Count != 0)
@@ -300,12 +299,12 @@ public class scrNodeMaster : MonoBehaviour
 		// Check if the node has finished uploading.
 		if (NodeBeingUploaded == null || !NodeBeingUploaded.Uploading)
 		{
-			// Get the next node to upload.  This should be the earliest node added that isn't blocked or inactive.
+			// Get the next node to upload.  This should be the earliest node added that isn't blocked, fully infected, or inactive.
 			if (inactiveNodeCount > 0)
 			{
 				foreach (GameObject n in nodePool)
 				{
-					if (n.activeSelf && !n.GetComponent<scrNode>().Blocked)
+					if (n.activeSelf && !n.GetComponent<scrNode>().Blocked && !n.GetComponent<scrNode>().FullyInfected)
 					{
 						NodeBeingUploaded = n.GetComponent<scrNode>();
 //						NodeBeingUploaded.BeginUpload();
@@ -325,9 +324,31 @@ public class scrNodeMaster : MonoBehaviour
 		messageQueue.Enqueue(message);
 	}
 
+	public void InjectInfectedMessages(int max)
+	{
+		for (int i = 0; i < max && infectedBufferQueue.Count != 0; ++i)
+		{
+			messageQueue.Enqueue(infectedBufferQueue.Dequeue());
+		}
+	}
+
 	public IEnumerator Create(Message message, bool infected)
 	{
 		creating = true;
+
+		if (scrMaster.Instance.Transitioning)
+		{
+			if (infected)
+			{
+				infectedBufferQueue.Enqueue(message);
+			}
+			else
+			{
+				scrGUI.Instance.AddToFeed(message.page_title, new Color(0.1f, 0.1f, 0.1f));
+			}
+			creating = false;
+			yield break;
+		}
 
 		if (freePositionsCount == 0)
 		{
@@ -381,17 +402,8 @@ public class scrNodeMaster : MonoBehaviour
 			{
 				scrNode nScript = n.Value.GetComponent<scrNode>();
 
-				// Don't replace fully infected nodes, the node being uploaded, or nodes that arent being infected.
-				if (nScript.FullyInfected || !nScript.Infected || NodeBeingUploaded != null && n.Value == NodeBeingUploaded.gameObject)
-					continue;
-
-				Vector2 position = n.Value.transform.position;
-				Vector2 topLeft = Camera.main.ScreenToWorldPoint(Vector2.zero);
-				Vector2 bottomRight = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
-
-				// Find out if the node is out of view.
-				if (position.x + CELL_SIZE * 0.5f < topLeft.x || position.x - CELL_SIZE * 0.5f > bottomRight.x ||
-				    position.y + CELL_SIZE * 0.5f < topLeft.y || position.y - CELL_SIZE * 0.5f > bottomRight.y)
+				// Don't replace nodes in view, fully infected nodes, the node being uploaded, or nodes that arent being infected.
+				if (!(nScript.VisibleToPlayer || nScript.FullyInfected || !nScript.Infected || NodeBeingUploaded != null && n.Value == NodeBeingUploaded.gameObject))
 				{
 					// Convert the node.
 					nScript.ConvertToInfected(message);
@@ -405,6 +417,8 @@ public class scrNodeMaster : MonoBehaviour
 			}
 
 			scrGUI.Instance.AddToFeed(message.page_title, ColCoreInfected);
+
+			yield return new WaitForSeconds(3.0f);	// 3 Second delay between node creation.
 
 			creating = false;
 
