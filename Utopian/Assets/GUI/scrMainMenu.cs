@@ -4,7 +4,7 @@ using System.Collections;
 
 public class scrMainMenu : MonoBehaviour
 {
-	public GameObject Ship;
+	public GameObject Core;
 
 	public Button PlayButton, OptionsButton, QuitButton;
 
@@ -13,15 +13,15 @@ public class scrMainMenu : MonoBehaviour
 	{
 		Screen.lockCursor = false;
 
-		PlayButton.transform.Find ("Text").GetComponent<scrScrollText>().Invoke("Run", 1.2f);
-		OptionsButton.transform.Find ("Text").GetComponent<scrScrollText>().Invoke("Run", 1.6f);
-		QuitButton.transform.Find ("Text").GetComponent<scrScrollText>().Invoke("Run", 2.0f);
+		PlayButton.transform.Find ("Text").GetComponent<scrScrollText>().Invoke("Run", 1.3f);
+		OptionsButton.transform.Find ("Text").GetComponent<scrScrollText>().Invoke("Run", 2.7f);
+		QuitButton.transform.Find ("Text").GetComponent<scrScrollText>().Invoke("Run", 4.1f);
 	}
 	
 	// Update is called once per frame
 	void Update ()
 	{
-		Ship.transform.Rotate (6 * Time.deltaTime, 10 * Time.deltaTime, 3 * Time.deltaTime);
+		Core.transform.Rotate (0, 0, 3 * Time.deltaTime);
 	}
 
 	public void Play()
