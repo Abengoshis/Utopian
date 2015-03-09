@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class scrPlayer : MonoBehaviour
@@ -33,6 +35,10 @@ public class scrPlayer : MonoBehaviour
 	float fireRate = 16;	// Shots per second.
 	float fireTimer = 0;
 	int fireMode = 0;
+	public Queue<BulletPowerup> Powerups = new Queue<BulletPowerup>();
+	int powerupShotsMax = 64;
+	int powerupShotsLeft = 0;
+
 
 	public GameObject BombExplosionPrefab;
 	float bombDelay = 10.0f;
@@ -61,6 +67,7 @@ public class scrPlayer : MonoBehaviour
 		AimDirection = Vector2.zero;
 
 		bulletPool = GetComponent<scrBulletPool>();
+		powerupShotsLeft = powerupShotsMax;
 
 		Screen.lockCursor = true;
 
@@ -149,10 +156,38 @@ public class scrPlayer : MonoBehaviour
 		{
 			if (fireTimer >= 1)
 			{
-				if (fireMode == 0)
-					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.TransformPoint(gunOffsets[0]), transform.right, 120, 1, true);
+				if (Powerups.Count != 0)
+				{
+					if (fireMode == 0)
+						bulletPool.Create(Powerups.Peek(), transform.TransformPoint(gunOffsets[0]), transform.right, true);
+					else
+					{
+						BulletPowerup p = Powerups.Peek();
+						p.Wiggle = -p.Wiggle;
+						bulletPool.Create(p, transform.TransformPoint(gunOffsets[1]), transform.right, true);
+					}
+
+					--powerupShotsLeft;
+					if (powerupShotsLeft == 0)
+					{
+						powerupShotsLeft = powerupShotsMax;
+						Powerups.Dequeue();
+						scrGUI.Instance.DequeuePowerup();
+					}
+
+					// ...I don't like iiiit...I want to recooode alll of thiiiiiss...its getting on my neeerves...but there's no tiiime!!
+					if (Powerups.Count != 0)
+						scrGUI.Instance.transform.Find ("PowerupQueue").GetComponent<Text>().text = "Powerup Queue - [ " + powerupShotsLeft + " Shots Left ]";
+					else
+						scrGUI.Instance.transform.Find ("PowerupQueue").GetComponent<Text>().text = "Powerup Queue - [ NO POWERUPS ]";
+				}
 				else
-					bulletPool.Create(scrBullet.BehaviourType.STANDARD, transform.TransformPoint(gunOffsets[1]), transform.right, 120, 1, true);
+				{
+					if (fireMode == 0)
+						bulletPool.Create(new BulletPowerup(scrNodeMaster.ColCoreUninfected, 120, 1, 0, 0, 0, false, false), transform.TransformPoint(gunOffsets[0]), transform.right, true);
+					else
+						bulletPool.Create(new BulletPowerup(scrNodeMaster.ColCoreUninfected, 120, 1, 0, 0, 0, false, false), transform.TransformPoint(gunOffsets[1]), transform.right, true);
+				}
 
 				audio.PlayOneShot(FireSound);
 

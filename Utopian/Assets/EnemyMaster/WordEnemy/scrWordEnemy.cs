@@ -107,7 +107,7 @@ public class scrWordEnemy : scrEnemy
 		{
 			Vector3 worldSource = transform.TransformPoint(source);
 			Vector3 shootDirection = GetInterceptDirection(worldSource, scrPlayer.Instance.rigidbody2D, 120);
-			scrEnemyMaster.BulletPool.Create (scrBullet.BehaviourType.STANDARD, worldSource, (scrPlayer.Instance.transform.position - worldSource).normalized, 120, 0.5f, true);
+			scrEnemyMaster.BulletPool.Create (new BulletPowerup(scrNodeMaster.ColCoreInfected, 120, 1, 0, 0, 0, false, false), worldSource, (scrPlayer.Instance.transform.position - worldSource).normalized, true);
 			audio.PlayOneShot(FireSound);
 
 			yield return new WaitForSeconds(0.1f);

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 public class scrResults : MonoBehaviour
 {
 	// Quick 'n' dirty global variables because of time pressure.
-	public static float TimeStart = 0, TimeEnd = 0;
+	public static float TimeElapsed = 0;
 
 	public static int RegisteredEditCount = 0;
 	public static int AnonymousEditCount = 0;
@@ -23,8 +23,7 @@ public class scrResults : MonoBehaviour
 
 	public static void Clear()
 	{
-		TimeStart = 0;
-		TimeEnd = 0;
+		TimeElapsed = 0;
 		RegisteredEditCount = 0;
 		AnonymousEditCount = 0;
 		BotEditCount = 0;
@@ -39,7 +38,7 @@ public class scrResults : MonoBehaviour
 	{
 		Screen.lockCursor = false;
 
-		WikiPanel.Find("Title").GetComponent<scrScrollText>().text = "Over the last " + (int)((TimeEnd - TimeStart) / 60) + "m" + (int)((TimeEnd - TimeStart) % 60) + "s:";
+		WikiPanel.Find("Title").GetComponent<scrScrollText>().text = "Over the last " + (int)(TimeElapsed / 60) + "m" + (int)(TimeElapsed % 60) + "s:";
 		WikiPanel.Find ("TotalEdits").GetComponent<scrScrollText>().text = (RegisteredEditCount + AnonymousEditCount + BotEditCount) + " edits were made to Wikipedia articles!";
 		WikiPanel.Find ("VandalEdits").GetComponent<scrScrollText>().text = ReversionEdits.Count + " edits were reversions, possibly to vandalism!";
 		WikiPanel.Find ("TotalUsers").GetComponent<scrScrollText>().text = Users.Count + " new users joined Wikipedia!";

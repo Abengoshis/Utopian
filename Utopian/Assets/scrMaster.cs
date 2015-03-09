@@ -23,6 +23,7 @@ public class scrMaster : MonoBehaviour
 
 	public float WaveDuration { get; private set; }
 	public float WaveTimer { get; private set; }
+	public int Wave { get; private set; }
 
 
 	//public AudioClip TextSound;
@@ -51,6 +52,7 @@ public class scrMaster : MonoBehaviour
 		TransitionTimer = 0;
 		WaveDuration = 120;
 		WaveTimer = 0;
+		Wave = 0;
 
 		StartCoroutine(LoadAll());
 	}
@@ -78,6 +80,8 @@ public class scrMaster : MonoBehaviour
 		}
 		else
 		{
+			scrResults.TimeElapsed += Time.deltaTime;
+
 			if (Transitioning)
 			{
 				TransitionTimer += Time.deltaTime;
@@ -124,6 +128,7 @@ public class scrMaster : MonoBehaviour
 				WaveTimer += Time.deltaTime;
 				if (WaveTimer >= WaveDuration)
 				{
+					++Wave;
 					WaveTimer = 0;
 					Transitioning = true;
 
@@ -204,15 +209,13 @@ public class scrMaster : MonoBehaviour
 		loading.SetActive(false);
 
 		scrResults.Clear ();
-		scrResults.TimeStart = Time.time;
+		scrResults.TimeElapsed = 0.0f;
 
 		Loading = false;
 	}
 
 	public void ItsGameOverMan()
 	{
-		scrResults.TimeEnd = Time.time;
-
 		scrNodeMaster.Instance.Purge();
 
 		// Disable system scripts.

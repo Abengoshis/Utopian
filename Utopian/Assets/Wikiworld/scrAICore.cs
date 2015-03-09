@@ -8,8 +8,8 @@ public class scrAICore : MonoBehaviour
 
 	public int Intelligence { get; private set; }
 	public int Corruption { get; private set; }
-	const int CORRUPTION_MAX = 1000;
-	const int INTELLIGENCE_MAX = 1000;
+	const int CORRUPTION_MAX = 100;
+	const int INTELLIGENCE_MAX = 500;
 
 	Slider corruptionSlider;
 	Slider intelligenceSlider;
@@ -95,6 +95,12 @@ public class scrAICore : MonoBehaviour
 		{
 			++Corruption;
 			corruptionSlider.value = (float)Corruption / CORRUPTION_MAX;
+		}
+
+		// Placeholder ending for research.
+		if (Intelligence == INTELLIGENCE_MAX || Corruption == CORRUPTION_MAX)
+		{
+			Application.LoadLevel("Results");
 		}
 	}
 

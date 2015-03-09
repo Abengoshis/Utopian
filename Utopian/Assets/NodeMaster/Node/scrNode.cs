@@ -538,7 +538,7 @@ public class scrNode : MonoBehaviour
 					wordIndex = 0;
 
 				// Set the spawn delay based on the amount of letters in the word.
-				spawnDelay = spawnDelayPerCharacter * words[wordIndex].Length;
+				spawnDelay = (spawnDelayPerCharacter * words[wordIndex].Length) / (scrMaster.Instance.Wave + 1);
 			}
 
 			spawnTimer = 0;

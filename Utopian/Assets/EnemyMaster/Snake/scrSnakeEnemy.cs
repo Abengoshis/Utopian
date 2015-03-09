@@ -73,7 +73,7 @@ public class scrSnakeEnemy : scrEnemy
 			{
 				fireTimer = 0;
 				
-				scrEnemyMaster.BulletPool.Create (scrBullet.BehaviourType.STANDARD, transform.position, direction.normalized, 80, 1, false);
+				scrEnemyMaster.BulletPool.Create (new BulletPowerup(scrNodeMaster.ColCoreInfected, 80, 1, 0, 0, 0, false, false), transform.position, direction.normalized, false);
 				audio.PlayOneShot(FireSound);
 			}
 		}

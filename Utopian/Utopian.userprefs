@@ -1,8 +1,20 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="..\..\CollectorOfLight\CollectorOfLight\Assets\Generation\GenerationManager.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Wikiworld\scrAICore.cs">
     <Files>
-      <File FileName="..\..\CollectorOfLight\CollectorOfLight\Assets\Generation\GenerationManager.cs" Line="23" Column="48" />
+      <File FileName="Assets\scrMaster.cs" Line="212" Column="25" />
+      <File FileName="Assets\Bullets\scrBullet.cs" Line="1" Column="1" />
+      <File FileName="Assets\Bullets\scrPowerup.cs" Line="1" Column="1" />
+      <File FileName="Assets\EnemyMaster\User\scrUserEnemy.cs" Line="57" Column="74" />
+      <File FileName="Assets\EnemyMaster\scrEnemy.cs" Line="1" Column="1" />
+      <File FileName="Assets\Bullets\scrBulletPool.cs" Line="1" Column="1" />
+      <File FileName="Assets\EnemyMaster\Snake\scrSnakeEnemy.cs" Line="1" Column="1" />
+      <File FileName="Assets\EnemyMaster\WordEnemy\scrWordEnemy.cs" Line="1" Column="1" />
+      <File FileName="Assets\Player\scrPlayer.cs" Line="1" Column="1" />
+      <File FileName="Assets\GUI\scrGUI.cs" Line="1" Column="1" />
+      <File FileName="Assets\Wikiworld\scrAICore.cs" Line="11" Column="30" />
+      <File FileName="Assets\NodeMaster\scrNodeMaster.cs" Line="1" Column="1" />
+      <File FileName="Assets\scrResults.cs" Line="41" Column="132" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

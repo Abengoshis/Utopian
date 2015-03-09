@@ -75,7 +75,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 126332}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 10, z: 0}
+  m_LocalPosition: {x: 23.7199993, y: 18.3500004, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 475370}
@@ -212,9 +212,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ExplosionPrefab: {fileID: 129818, guid: 2a62242115cf98644a86a1940a36f37c, type: 2}
   ExpireWhenNotVisible: 0
+  FromPlayer: 1
   Direction: {x: 0, y: 0}
   Speed: 0
   Damage: 0
+  Wiggle: 0
+  Erratic: 0
+  Penetrative: 0
 --- !u!122 &12273710
 Halo:
   m_ObjectHideFlags: 1

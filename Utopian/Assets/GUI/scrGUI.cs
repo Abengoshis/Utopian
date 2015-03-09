@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.UI;
 
 public class scrGUI : MonoBehaviour
@@ -11,6 +12,9 @@ public class scrGUI : MonoBehaviour
 	public GUISkin Skin;
 
 	Text[] feedItems;
+
+	GameObject powerupItemTemplate;
+	List<Text> powerupItems = new List<Text>();
 
 
 	// Use this for initialization
@@ -27,6 +31,9 @@ public class scrGUI : MonoBehaviour
 			feedItems[i].transform.SetParent(transform);
 			feedItems[i].transform.localScale = feedItems[0].transform.localScale;
 		}
+
+		powerupItemTemplate = transform.Find ("PowerupItem").gameObject;
+		powerupItemTemplate.SetActive(false);
 	}
 	
 	// Update is called once per frame
@@ -46,6 +53,29 @@ public class scrGUI : MonoBehaviour
 		}
 		feedItems[0].GetComponent<Text>().text = text;
 		feedItems[0].GetComponent<Text>().color = colour;
+	}
+
+	public void EnqueuePowerup(string text, Color colour)
+	{
+		Text p = ((GameObject)Instantiate(powerupItemTemplate)).GetComponent<Text>();
+		p.gameObject.SetActive(true);
+		p.transform.parent = transform;
+		p.text = text;
+		p.color = colour;
+		if (powerupItems.Count != 0)
+			p.transform.position = powerupItems[powerupItems.Count - 1].transform.position - new Vector3(0, 18, 0);
+		else
+			p.transform.position = powerupItemTemplate.transform.position;
+		p.transform.localScale = powerupItemTemplate.transform.localScale;
+		powerupItems.Add(p);
+	}
+
+	public void DequeuePowerup()
+	{
+		Destroy (powerupItems[0].gameObject);
+		powerupItems.RemoveAt(0);
+		for (int i = 0; i < powerupItems.Count; ++i)
+			powerupItems[i].transform.position = powerupItemTemplate.transform.position - new Vector3(0, 18 * i, 0);
 	}
 
 	public void DrawOutlinedText(string text, Vector3 viewportPosition, Color interior, Color outline, float thickness)

@@ -15,14 +15,20 @@ public class scrBullet : MonoBehaviour
 	public bool Expired { get; private set; }
 	public bool ExpireWhenNotVisible = false;
 	public bool Infecter { get; private set; }
+	public bool FromPlayer = false;	// Hax
 
 	public Vector2 Direction;
 	public float Speed;
 	public float Damage;
+	public float Wiggle;	// These things are hacky ways to implement powerups. I'll remake the entire game after research as I already have ideas for improving efficiency and gameplay.
+	public float Erratic;
+	public bool Penetrative;
 
 	delegate void method();
 	method updateBehaviour;
 	method fixedUpdateBehaviour;
+
+	private float life = 0;
 
 	// Use this for initialization
 	void Start ()
@@ -35,13 +41,13 @@ public class scrBullet : MonoBehaviour
 	{
 		Visible = !Expired && GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(Camera.main), collider2D.bounds);
 
-		transform.right = Direction;
-
 		if (ExpireWhenNotVisible && !Visible)	
 			Expired = true;
 
 		if (updateBehaviour != null)
 			updateBehaviour();
+
+		life += Time.deltaTime;
 	}
 
 	void FixedUpdate()
@@ -58,33 +64,52 @@ public class scrBullet : MonoBehaviour
 			explosion.transform.forward = -Direction;
 		}
 
-		Expired = true;
+		if (!Penetrative || c.transform.root.GetComponentInChildren<scrPlayer>() != null)
+			Expired = true;
 	}
 
-	public void Init(BehaviourType type, Vector3 position, Vector2 direction, float speed, float damage, bool expireWhenNotVisible, bool infecter)
+	public void Init(BulletPowerup powerup, Vector3 position, Vector2 direction, bool expireWhenNotVisible, bool infecter)
 	{
+		life = 0;
 		Expired = false;
 		ExpireWhenNotVisible = expireWhenNotVisible;
 		Infecter = infecter;
 		transform.position = position;
 		Direction = direction;
 		transform.forward = direction;
-		Speed = speed;
-		Damage = damage;
+		Speed = powerup.Speed;
+		Damage = powerup.Size;
+		Wiggle = powerup.Wiggle;
+		Erratic = powerup.Erratic;
+		Penetrative = powerup.Penetrative;
 
-		switch (type)
+		if (Penetrative)
+			transform.localScale = powerup.Size * new Vector3(1.5f, 0.3f, 0.3f);
+		else
+			transform.localScale = powerup.Size * Vector3.one;
+
+
+		transform.Find ("Core").renderer.material.color = powerup.Colour;
+		transform.Find ("Glow").renderer.material.SetColor("_TintColor", new Color(powerup.Colour.r * 0.5f, powerup.Colour.g * 0.5f, powerup.Colour.b * 0.5f, 0.0625f));
+
+		if (!powerup.Homing)
 		{
-		case BehaviourType.STANDARD:
 			StandardStart();
 			updateBehaviour = StandardUpdate;
 			fixedUpdateBehaviour = StandardFixedUpdate;
-			break;
-		case BehaviourType.HOMING:
+		}
+		else
+		{
 			HomingStart();
 			updateBehaviour = HomingUpdate;
 			fixedUpdateBehaviour = HomingFixedUpdate;
-			break;
 		}
+	}
+
+	void ApplyWiggle()
+	{
+		float wig = Erratic * Speed * 0.01f * Mathf.Sin (life * Wiggle * 0.5f);
+		transform.right = Direction + new Vector2(-Direction.y, Direction.x).normalized * wig;
 	}
 
 	#region Standard
@@ -95,12 +120,12 @@ public class scrBullet : MonoBehaviour
 
 	void StandardUpdate()
 	{
-
+		ApplyWiggle();
 	}
 
 	void StandardFixedUpdate()
 	{
-
+		rigidbody2D.velocity = transform.right * Speed;
 	}
 	#endregion
 
@@ -112,8 +137,18 @@ public class scrBullet : MonoBehaviour
 	
 	void HomingUpdate()
 	{
-		transform.right = (Vector3)rigidbody2D.velocity;
+		if (!FromPlayer)
+		{
+			Vector2 direction = scrPlayer.Instance.transform.position - transform.position;
 
+			if (direction.magnitude < scrNodeMaster.CELL_SIZE && Vector2.Angle ((Vector2)transform.right, direction) < 22.5f)
+				Direction = direction;
+			else
+				ApplyWiggle();
+
+			return;
+		}
+		
 		// Find the nearest target.
 		float bestDistance = float.MaxValue;
 		Collider2D bestCollider = null;
@@ -124,7 +159,7 @@ public class scrBullet : MonoBehaviour
 			if (distance < bestDistance)
 			{
 				// Check if within an arc.
-				if (Vector2.Angle ((Vector2)transform.right, direction) < 22.5f)
+				if (Vector2.Angle ((Vector2)transform.right, direction) < 90.0f)
 				{
 					bestDistance = distance;
 					bestCollider = c;
@@ -135,15 +170,18 @@ public class scrBullet : MonoBehaviour
 		if (bestCollider != null)
 		{
 			Direction = (Vector2)(bestCollider.transform.position - transform.position);
-			Debug.Log (Direction);
+			transform.right = Direction;
 		}
+		else
+			transform.right = rigidbody2D.velocity;
 	}
 	
 	void HomingFixedUpdate()
 	{
-		rigidbody2D.AddForce(Direction * Speed * Time.fixedDeltaTime * 10);
+		rigidbody2D.AddForce(transform.right * Speed * Time.fixedDeltaTime * 100);
 		if (rigidbody2D.velocity.magnitude > Speed)
 			rigidbody2D.velocity = rigidbody2D.velocity.normalized * Speed;
+
 	}
 	#endregion
 }

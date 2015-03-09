@@ -48,6 +48,7 @@
   <ItemGroup>
      <Compile Include="Assets\Bullets\scrBullet.cs" />
      <Compile Include="Assets\Bullets\scrBulletPool.cs" />
+     <Compile Include="Assets\Bullets\scrPowerup.cs" />
      <Compile Include="Assets\Effects\Explosions\scrExplosion.cs" />
      <Compile Include="Assets\EnemyMaster\Snake\scrSnakeEnemy.cs" />
      <Compile Include="Assets\EnemyMaster\User\scrUserEnemy.cs" />

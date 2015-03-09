@@ -7,9 +7,40 @@ public class scrUserEnemy : scrEnemy
 	private int targetCubeIndex = 0;
 	private float fireRate = 0.5f;
 	private float fireTimer = 0;
-
 	private scrPathfinder pathfinder;
-	
+	public BulletPowerup powerup;
+
+	private Color NameToColour(string name)
+	{
+		int angle = 0;
+		for (int i = 0; i < name.Length; ++i)
+			angle += name[i];
+		angle %= 360;
+
+		float x = 1 - Mathf.Abs((angle / 60.0f) % 2 - 1);
+
+		// EXCLUDE COLOURS SIMILAR TO THE PLAYER!
+		if (angle > 160 && angle < 220)
+			angle -= 100;
+
+		if (angle < 60)
+			return new Color(1, x, 0.25f);
+
+		if (angle < 120)
+			return new Color(x, 1, 0.25f);
+
+		if (angle < 180)
+			return new Color(0.25f, 1, x);
+
+		if (angle < 240)
+			return new Color(0.25f, x, 1);
+
+		if (angle < 300)
+			return new Color(x, 0.25f, 1);
+
+		return new Color(1, 0.25f, x);
+	}
+
 	public override void Init()
 	{
 		GetComponentInChildren<TextMesh>().text = Name;
@@ -18,11 +49,33 @@ public class scrUserEnemy : scrEnemy
 
 		pathfinder = GetComponent<scrPathfinder>();
 		pathfinder.Target = scrPlayer.Instance.gameObject;
+
+		powerup.Colour = NameToColour(Name);
+		powerup.Size = 0.5f + (Mathf.Max(Name.Length, 16)) / 10.0f;
+		powerup.Speed = 220.0f / powerup.Size;
+		powerup.Wiggle = Name[0] < 80 ? Name[0] * 0.5f : 0;
+		powerup.Erratic = (Mathf.Abs(Name[Name.Length - 1] - Name[0]) % 10) / 7.0f;
+		powerup.Homing = Name[0].ToString().ToUpper()[0] < 'H';
+		powerup.Penetrative = Name[Name.Length - 1] < '9';
+
+		//powerup = new BulletPowerup(colour, speed, size, split, wiggle, homing, penetrative);
+
+		Transform ship = transform.Find("Ship");
+		ship.Find("Core_Core").renderer.material.color = powerup.Colour;
+		ship.Find("Core_Glow").renderer.material.SetColor("_TintColor", new Color(powerup.Colour.r * 0.5f, powerup.Colour.g * 0.5f, powerup.Colour.b * 0.5f, 0.0625f));
+		transform.GetComponentInChildren<TrailRenderer>().material.SetColor("_TintColor", powerup.Colour);
+		ExplosionColour = powerup.Colour;
 	}
 
 	// Update is called once per frame
 	protected override void Update ()
 	{
+		if (damageTimer >= DamageToDestroy)
+		{
+			scrPlayer.Instance.Powerups.Enqueue(powerup);
+			scrGUI.Instance.EnqueuePowerup(Name, powerup.Colour);
+		}
+			
 		pathfinder.Resume();
 
 		// If sieging, shoot at the node.
@@ -32,6 +85,7 @@ public class scrUserEnemy : scrEnemy
 			{
 				SiegeNode = null;
 				pathfinder.Target = scrPlayer.Instance.gameObject;
+				base.Update();
 				return;
 			}
 
@@ -56,7 +110,7 @@ public class scrUserEnemy : scrEnemy
 					{
 						fireTimer = 0;
 						
-						StartCoroutine(ShootThrice());
+						StartCoroutine(Shoot(Random.Range (3, 8)));
 					}
 				}
 			}
@@ -75,7 +129,7 @@ public class scrUserEnemy : scrEnemy
 				{
 					fireTimer = 0;
 
-					StartCoroutine(ShootThrice());
+					StartCoroutine(Shoot(Random.Range (3, 8)));
 				}
 			}
 
@@ -105,12 +159,12 @@ public class scrUserEnemy : scrEnemy
 		base.Update();
 	}
 
-	IEnumerator ShootThrice()
+	IEnumerator Shoot(int numTimes)
 	{
-		for (int i = 0; i < 3; ++i)
+		for (int i = 0; i < numTimes; ++i)
 		{
 			audio.PlayOneShot(FireSound);
-			scrEnemyMaster.BulletPool.Create (scrBullet.BehaviourType.STANDARD, transform.position, transform.right, 120, 1, false, true);
+			scrEnemyMaster.BulletPool.Create (powerup, transform.position, transform.right, false, true);
 			yield return new WaitForSeconds(0.1f);
 		}
 	}

@@ -1,11 +1,11 @@
 Base path: C:/Program Files/Unity/Editor/Data
-Pipe name: \\.\pipe\UnityShaderCompiler-3-2804
+Pipe name: \\.\pipe\UnityShaderCompiler-3-7736
 Cmd: getPlatforms
 Cmd: compileSnippet
-  error: 2 plat 0 at (89): operands to "%" must be integral
-  error: 2 plat 0 at (97): operands to "%" must be integral
-  error: 2 plat 0 at (105): operands to "%" must be integral
-  api=0 type=0 insize=2379 outsize=0 kw= ok=0
+  error: 2 plat 1 at (89): operands to "%" must be integral
+  error: 2 plat 1 at (97): operands to "%" must be integral
+  error: 2 plat 1 at (105): operands to "%" must be integral
+  api=1 type=1 insize=2379 outsize=0 kw= ok=0
 Unhandled exception: Readfile from pipe failed. GLE=The pipe has been ended.
 
 

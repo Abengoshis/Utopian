@@ -304,7 +304,7 @@ public class scrNodeMaster : MonoBehaviour
 			{
 				foreach (GameObject n in nodePool)
 				{
-					if (n.activeSelf && !n.GetComponent<scrNode>().Blocked && !n.GetComponent<scrNode>().FullyInfected)
+					if (n.activeSelf && n.GetComponent<scrNode>().Data.change_size > 0)
 					{
 						NodeBeingUploaded = n.GetComponent<scrNode>();
 //						NodeBeingUploaded.BeginUpload();

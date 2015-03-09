@@ -74,7 +74,7 @@ public class scrEnemy : MonoBehaviour
 				float t = damageTimer / DamageToDestroy;
 				for(int i = 0; i < renderers.Length; ++i)
 				{
-					if (renderers[i].material.HasProperty("_Color"))
+					if (renderers[i].material.HasProperty("_Color") && materials[i].HasProperty("_Color"))
 						renderers[i].material.color = Color.Lerp (materials[i].color, Color.white, t);
 				}
 
@@ -82,7 +82,7 @@ public class scrEnemy : MonoBehaviour
 		}
 	}
 
-	void OnTriggerEnter2D(Collider2D c)
+	protected virtual void OnTriggerEnter2D(Collider2D c)
 	{
 		if (c.gameObject.layer == LayerMask.NameToLayer("PBullet"))
 		{
