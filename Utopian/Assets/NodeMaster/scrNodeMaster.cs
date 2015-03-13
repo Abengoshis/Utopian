@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class scrNodeMaster : MonoBehaviour
 {
 	public static scrNodeMaster Instance { get; private set; }
+	public static bool SelectNewNode = true;
 
 	const int LOOPS_PER_FRAME = 100;
 
@@ -230,6 +231,7 @@ public class scrNodeMaster : MonoBehaviour
 	void Start ()
 	{
 		Instance = this;
+		SelectNewNode = true;
 
 		Grid.transform.localScale = new Vector3(GRID_SIZE * CELL_SIZE, GRID_SIZE * CELL_SIZE, 1);
 		Grid.renderer.material.SetInt("_GridSize", GRID_SIZE);
@@ -267,6 +269,7 @@ public class scrNodeMaster : MonoBehaviour
 
 			// Check the message for certain criteria to determine whether or not to make an infected or uninfected node.
 			string summary = message.summary != null ? message.summary.ToUpper() : "";
+
 			if (summary.Length == 0 || !(summary.Contains("UNDID") || summary.Contains ("UNDO") || summary.Contains("REVERT") || summary.Contains("REVERSION") || summary.Contains("VANDAL") || summary.Contains("SPAM")))
 			{
 				// Remove the message if it isn't infected so it's more likely infected nodes accumulate.
@@ -297,17 +300,17 @@ public class scrNodeMaster : MonoBehaviour
 		}
 
 		// Check if the node has finished uploading.
-		if (NodeBeingUploaded == null || !NodeBeingUploaded.Uploading)
+		if (SelectNewNode)
 		{
 			// Get the next node to upload.  This should be the earliest node added that isn't blocked, fully infected, or inactive.
 			if (inactiveNodeCount > 0)
 			{
 				foreach (GameObject n in nodePool)
 				{
-					if (n.activeSelf && n.GetComponent<scrNode>().Data.change_size > 0)
+					if (n.activeSelf && !n.GetComponent<scrNode>().Blocked)
 					{
 						NodeBeingUploaded = n.GetComponent<scrNode>();
-//						NodeBeingUploaded.BeginUpload();
+						SelectNewNode = false;
 						break;
 					}
 				}

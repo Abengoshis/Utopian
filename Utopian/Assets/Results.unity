@@ -1275,7 +1275,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: 000 edits were reversions, possibly to vandalism!
+  m_Text: 000 edits were reversions (vandalism shown in red)!
 --- !u!222 &1037890293
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1568,7 +1568,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 56641563}
   m_Direction: 2
   m_Value: 0
-  m_Size: 1
+  m_Size: .999999881
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -1995,7 +1995,7 @@ RectTransform:
   m_RootOrder: 0
   m_AnchorMin: {x: .5, y: .5}
   m_AnchorMax: {x: .5, y: .5}
-  m_AnchoredPosition: {x: 357.000061, y: -13.9999981}
+  m_AnchoredPosition: {x: 408.899994, y: -14}
   m_SizeDelta: {x: 240, y: 27}
   m_Pivot: {x: .5, y: .5}
 --- !u!114 &1516795244

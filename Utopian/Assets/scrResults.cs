@@ -40,7 +40,7 @@ public class scrResults : MonoBehaviour
 
 		WikiPanel.Find("Title").GetComponent<scrScrollText>().text = "Over the last " + (int)(TimeElapsed / 60) + "m" + (int)(TimeElapsed % 60) + "s:";
 		WikiPanel.Find ("TotalEdits").GetComponent<scrScrollText>().text = (RegisteredEditCount + AnonymousEditCount + BotEditCount) + " edits were made to Wikipedia articles!";
-		WikiPanel.Find ("VandalEdits").GetComponent<scrScrollText>().text = ReversionEdits.Count + " edits were reversions, possibly to vandalism!";
+		WikiPanel.Find ("VandalEdits").GetComponent<scrScrollText>().text = ReversionEdits.Count + " edits were reversions (vandalism shown in red)!";
 		WikiPanel.Find ("TotalUsers").GetComponent<scrScrollText>().text = Users.Count + " new users joined Wikipedia!";
 
 
@@ -143,6 +143,12 @@ public class scrResults : MonoBehaviour
 			else
 			{
 				txt.text = m.page_title + " was reverted by " + m.user + ".";
+			}
+
+			if (m.summary.ToUpper().Contains("VANDAL") || m.summary.ToUpper().Contains("SPAM"))
+			{
+				txt.color = Color.red;
+				Debug.Log ("POOPY SHITS");
 			}
 
 			r.GetComponent<Button>().onClick.AddListener(delegate{OpenURL(m.url);});

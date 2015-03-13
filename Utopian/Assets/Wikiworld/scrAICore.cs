@@ -31,7 +31,7 @@ public class scrAICore : MonoBehaviour
 
 		ChildArm = transform.Find ("Arm").gameObject;
 		ChildFocus = transform.Find ("Focus").gameObject;
-		ArmLocked = false;
+		ArmLocked = true;
 	}
 
 	void Update ()
@@ -44,16 +44,17 @@ public class scrAICore : MonoBehaviour
 				rotation += 360;
 
 			// Has rotated to the right direction? (Do this with smoothstep and work out timer in future). In fact do all of this with a timer you dumpass!
-			if ((int)(ChildArm.transform.eulerAngles.z * 10) / 10.0f == (int)(rotation * 10) / 10.0f)
+			if (Mathf.Abs ((int)ChildArm.transform.eulerAngles.z - (int)rotation) < 5)
 			{
 				ChildArm.transform.eulerAngles = new Vector3(0, 0, rotation);
 
 				if (Vector3.Distance(ChildFocus.transform.position, scrNodeMaster.Instance.NodeBeingUploaded.transform.position) < 0.1f) 
 				{
-					ChildFocus.transform.position = scrNodeMaster.Instance.NodeBeingUploaded.transform.position;
 
+					ChildFocus.transform.position = scrNodeMaster.Instance.NodeBeingUploaded.transform.position;
 					if (!ArmLocked)
 					{
+
 						ArmLocked = true;
 						ChildFocus.audio.pitch = 1;
 

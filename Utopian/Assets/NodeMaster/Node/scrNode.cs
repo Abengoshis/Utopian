@@ -78,6 +78,11 @@ public class scrNode : MonoBehaviour
 	const string ADDED_TAG =   "  <td class=\"diff-addedline\"><div>";
 
 	public Message Data { get; private set; }
+
+	public System.TimeSpan ReversionTime { get; private set; }
+	float bossMakeDuration = 10.0f;	// After this time, a boss will spawn at the infected node.
+	float bossMakeTimer = 0.0f;
+
 	public bool FullyInfected { get; private set; }
 	public bool Infected { get; private set; }
 	public bool Blocked { get { return !FullyInfected && Data.change_size <= 0; } }
@@ -221,10 +226,11 @@ public class scrNode : MonoBehaviour
 		{
 			if (Cubes[i] == cube)
 			{
+				Cubes[i] = null;
+
 				bool cubeInfected = cube.Value.GetComponent<scrCube>().State == scrCube.DataState.INFECTED;
 
 				scrNodeMaster.Instance.DeactivateCube(cube);
-				Cubes[i] = null;
 				--totalCubeCount;
 
 				bool changeState = false;
@@ -385,6 +391,9 @@ public class scrNode : MonoBehaviour
 
 		numLoops = 0;
 
+		// Get the time between revisions.
+		string[] timesRaw = new string[2];
+
 		// Get the deleted and added content.
 		string[] lines = page.text.Split('\n');
 		List<string> deleted = new List<string>();
@@ -396,12 +405,81 @@ public class scrNode : MonoBehaviour
 			else if (line.StartsWith(ADDED_TAG))
 				added.Add (line);
 
+			if (string.IsNullOrEmpty(timesRaw[0]) &&
+			    line.Contains("Revision as of "))
+			{
+				int index = line.IndexOf("Revision as of ");
+				int end = line.IndexOf("</a>", index + 15);
+				timesRaw[0] = line.Substring(index + 15, end - index - 15);
+    		}
+			else if (string.IsNullOrEmpty(timesRaw[1]) &&
+			         line.Contains("Latest revision as of "))
+			{
+				int index = line.IndexOf("Latest revision as of ");
+				int end = line.IndexOf("</a>", index + 22);
+				timesRaw[1] = line.Substring(index + 22, end - index - 22);
+			}
+
+
 			if (++numLoops > LOOPS_PER_FRAME)
 			{
 				numLoops = 0;
 				yield return new WaitForEndOfFrame();
 			}
 		}
+
+		// Parse the times.
+		System.DateTime[] timesParsed = new System.DateTime[2];
+		for (int i = 0; i < 2; ++i)
+		{
+			int hour = int.Parse(timesRaw[i].Substring(0, 2));
+			int minute = int.Parse(timesRaw[i].Substring(3, 2));
+			int day = int.Parse(timesRaw[i].Substring(7, 2));
+			int month = 0;
+			switch(timesRaw[i].Substring(10, timesRaw[i].IndexOf(' ', 10) - 10))
+			{
+			case "January":
+				month = 1;
+				break;
+			case "February":
+				month = 2;
+				break;
+			case "March":
+				month = 3;
+				break;
+			case "April":
+				month = 4;
+				break;
+			case "May":
+				month = 5;
+				break;
+			case "June":
+				month = 6;
+				break;
+			case "July":
+				month = 7;
+				break;
+			case "August":
+				month = 8;
+				break;
+			case "September":
+				month = 9;
+				break;
+			case "October":
+				month = 10;
+				break;
+			case "November":
+				month = 11;
+				break;
+			case "December":
+				month = 12;
+				break;
+			}
+			int year = int.Parse(timesRaw[i].Substring(timesRaw[i].LastIndexOf(' ') + 1));
+			timesParsed[i] = new System.DateTime(year, month, day, hour, minute, 0);
+		}
+
+		ReversionTime = timesParsed[1] - timesParsed[0];
 
 		string concat = "";
 		foreach (string line in deleted)
@@ -545,6 +623,13 @@ public class scrNode : MonoBehaviour
 		}
 	}
 
+	void SpawnBoss()
+	{
+		string bossTime = ReversionTime.Days + "d " + ReversionTime.Hours + "h " + ReversionTime.Minutes + "m ";
+
+		
+	}
+
 	public float GetInfectionAmount()
 	{
 		if (Cubes != null)
@@ -627,7 +712,11 @@ public class scrNode : MonoBehaviour
 			// Destroy if necessary.
 			if (totalCubeCount == 0)
 			{
-				Uploading = false;
+				if (Uploading)
+				{
+					Uploading = false;
+					scrNodeMaster.SelectNewNode = true;
+				}
 
 				GameObject explosion = (GameObject)Instantiate (ExplosionPrefab, transform.position, Quaternion.identity);
 				explosion.particleSystem.startColor = Color.Lerp (ChildCore.renderer.material.color, Color.white, 0.5f);
@@ -640,6 +729,17 @@ public class scrNode : MonoBehaviour
 			if (FullyInfected)
 			{
 				SpawnEnemies();
+
+				bossMakeTimer += Time.deltaTime;
+				if (bossMakeTimer >= bossMakeDuration)
+				{
+					SpawnBoss();
+					foreach (LinkedListNode<GameObject> c in Cubes)
+					{
+						if (c != null && c.Value != null && c.Value.activeSelf)
+							c.Value.GetComponent<scrCube>().DestroyImmediate();
+					}
+				}
 
 				// Clear redundant links and animate current links.
 				float halfLinkExpandDuration = linkExpandDuration * 0.5f;
@@ -722,6 +822,7 @@ public class scrNode : MonoBehaviour
 		// Give the audio a buffer time in case a cube sound is still playing.
 		yield return new WaitForSeconds(0.6f);
 
+		scrNodeMaster.SelectNewNode = true;
 		Uploading = false;
 	}
 

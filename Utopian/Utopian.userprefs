@@ -1,20 +1,11 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Wikiworld\scrAICore.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\NodeMaster\Node\scrNode.cs">
     <Files>
-      <File FileName="Assets\scrMaster.cs" Line="212" Column="25" />
-      <File FileName="Assets\Bullets\scrBullet.cs" Line="1" Column="1" />
-      <File FileName="Assets\Bullets\scrPowerup.cs" Line="1" Column="1" />
-      <File FileName="Assets\EnemyMaster\User\scrUserEnemy.cs" Line="57" Column="74" />
-      <File FileName="Assets\EnemyMaster\scrEnemy.cs" Line="1" Column="1" />
-      <File FileName="Assets\Bullets\scrBulletPool.cs" Line="1" Column="1" />
-      <File FileName="Assets\EnemyMaster\Snake\scrSnakeEnemy.cs" Line="1" Column="1" />
-      <File FileName="Assets\EnemyMaster\WordEnemy\scrWordEnemy.cs" Line="1" Column="1" />
-      <File FileName="Assets\Player\scrPlayer.cs" Line="1" Column="1" />
-      <File FileName="Assets\GUI\scrGUI.cs" Line="1" Column="1" />
-      <File FileName="Assets\Wikiworld\scrAICore.cs" Line="11" Column="30" />
-      <File FileName="Assets\NodeMaster\scrNodeMaster.cs" Line="1" Column="1" />
-      <File FileName="Assets\scrResults.cs" Line="41" Column="132" />
+      <File FileName="Assets\scrWebSocketClient.cs" Line="20" Column="2" />
+      <File FileName="Assets\NodeMaster\Node\scrNode.cs" Line="630" Column="3" />
+      <File FileName="Assets\scrMaster.cs" Line="139" Column="45" />
+      <File FileName="Assets\NodeMaster\scrNodeMaster.cs" Line="170" Column="2" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
