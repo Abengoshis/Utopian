@@ -130,7 +130,6 @@ public class scrWebSocketClient : MonoBehaviour
 			Message message = new Message();
 			message.user = (string)messageData["user"];
 			messagesAccumulated.Enqueue(message);
-
 			scrResults.Users.Add (message.user);
 		}
 		else

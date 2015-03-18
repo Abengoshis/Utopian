@@ -50,6 +50,7 @@
      <Compile Include="Assets\Bullets\scrBulletPool.cs" />
      <Compile Include="Assets\Bullets\scrPowerup.cs" />
      <Compile Include="Assets\Effects\Explosions\scrExplosion.cs" />
+     <Compile Include="Assets\EnemyMaster\NodeBoss\scrBoss.cs" />
      <Compile Include="Assets\EnemyMaster\Snake\scrSnakeEnemy.cs" />
      <Compile Include="Assets\EnemyMaster\User\scrUserEnemy.cs" />
      <Compile Include="Assets\EnemyMaster\WordEnemy\scrWordEnemy.cs" />

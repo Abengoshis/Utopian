@@ -19,10 +19,13 @@ public class scrResults : MonoBehaviour
 	public static string Killer = "";	// User that killed the player.
 	public static List<string> Users = new List<string>();	// Get the url with http://www.wikipedia.org/wiki/User:" + user + "\" target=\"_blank".
 
+	public static int Score = 0;
+
 	bool animationFinished = false;
 
 	public static void Clear()
 	{
+		Score = 0;
 		TimeElapsed = 0;
 		RegisteredEditCount = 0;
 		AnonymousEditCount = 0;
@@ -145,10 +148,9 @@ public class scrResults : MonoBehaviour
 				txt.text = m.page_title + " was reverted by " + m.user + ".";
 			}
 
-			if (m.summary.ToUpper().Contains("VANDAL") || m.summary.ToUpper().Contains("SPAM"))
+			if (!string.IsNullOrEmpty(m.summary) && m.summary.ToUpper().Contains("VANDAL") || m.summary.ToUpper().Contains("SPAM"))
 			{
 				txt.color = Color.red;
-				Debug.Log ("POOPY SHITS");
 			}
 
 			r.GetComponent<Button>().onClick.AddListener(delegate{OpenURL(m.url);});

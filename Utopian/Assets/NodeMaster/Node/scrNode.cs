@@ -74,14 +74,8 @@ public class scrNode : MonoBehaviour
 	public const int LINKS_MAX = 8;	// Number of links possible (also the number of 2d positions in a grid around one position.
 	public const int LINK_VERTICES = 8;
 	const int LOOPS_PER_FRAME = 50;	// Number of loops allowed per frame of a coroutine before yielding.
-	const string DELETED_TAG = "  <td class=\"diff-deletedline\"><div>";
-	const string ADDED_TAG =   "  <td class=\"diff-addedline\"><div>";
 
 	public Message Data { get; private set; }
-
-	public System.TimeSpan ReversionTime { get; private set; }
-	float bossMakeDuration = 10.0f;	// After this time, a boss will spawn at the infected node.
-	float bossMakeTimer = 0.0f;
 
 	public bool FullyInfected { get; private set; }
 	public bool Infected { get; private set; }
@@ -126,7 +120,7 @@ public class scrNode : MonoBehaviour
 
 	public AudioClip UploadCubeSound;
 
-	public void Init(LinkedListNode<GameObject> node, Message data, int coreSize, bool infected)
+	public void Init(LinkedListNode<GameObject> node, Message data, int coreSize, bool infected, string[] words)
 	{
 		if (coreSize == 0)
 			Debug.Log ("WHAT");
@@ -139,6 +133,7 @@ public class scrNode : MonoBehaviour
 		infectionPulseTimer = 0.0f;
 		spawnTimer = 0.0f;
 		wordIndex = 0;
+		this.words = words;
 
 		// Unlink all nodes.
 		CurrentLinks = 0;
@@ -178,12 +173,13 @@ public class scrNode : MonoBehaviour
 		FullyInfected = infected;
 		Infected = infected;
 
+		// Begin reading the text immediately.
+		//StartCoroutine(Parse ());
+
+
 		// If fully infected, all cubes are infected.
 		if (FullyInfected)
 		{
-			// Begin reading the text immediately.
-			StartCoroutine(Parse ());
-
 			infectionPulseDelay = PULSE_DELAY_MAX * (1 - (coreSize - 1) / CORE_SIZE_MAX);
 			InfectedCubeCount = Cubes.Length;
 			ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreInfected;
@@ -312,7 +308,7 @@ public class scrNode : MonoBehaviour
 			FullyInfected = true;
 			
 			// Read the text.
-			StartCoroutine(Parse ());
+			//StartCoroutine(Parse ());
 			
 			// Set the infected materials.
 			ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreInfected;
@@ -374,211 +370,6 @@ public class scrNode : MonoBehaviour
 		++CurrentLinks;
 	}
 
-	IEnumerator Parse()
-	{
-		int numLoops = 0;
-
-		// Load the page.
-		WWW page = new WWW(Data.url);
-		while (!page.isDone)
-		{
-			if (++numLoops == LOOPS_PER_FRAME)
-			{
-				numLoops = 0;
-				yield return new WaitForEndOfFrame();
-			}
-		}
-
-		numLoops = 0;
-
-		// Get the time between revisions.
-		string[] timesRaw = new string[2];
-
-		// Get the deleted and added content.
-		string[] lines = page.text.Split('\n');
-		List<string> deleted = new List<string>();
-		List<string> added = new List<string>();
-		foreach (string line in lines)
-		{
-			if (line.StartsWith(DELETED_TAG))
-				deleted.Add (line);
-			else if (line.StartsWith(ADDED_TAG))
-				added.Add (line);
-
-			if (string.IsNullOrEmpty(timesRaw[0]) &&
-			    line.Contains("Revision as of "))
-			{
-				int index = line.IndexOf("Revision as of ");
-				int end = line.IndexOf("</a>", index + 15);
-				timesRaw[0] = line.Substring(index + 15, end - index - 15);
-    		}
-			else if (string.IsNullOrEmpty(timesRaw[1]) &&
-			         line.Contains("Latest revision as of "))
-			{
-				int index = line.IndexOf("Latest revision as of ");
-				int end = line.IndexOf("</a>", index + 22);
-				timesRaw[1] = line.Substring(index + 22, end - index - 22);
-			}
-
-
-			if (++numLoops > LOOPS_PER_FRAME)
-			{
-				numLoops = 0;
-				yield return new WaitForEndOfFrame();
-			}
-		}
-
-		// Parse the times.
-		System.DateTime[] timesParsed = new System.DateTime[2];
-		for (int i = 0; i < 2; ++i)
-		{
-			int hour = int.Parse(timesRaw[i].Substring(0, 2));
-			int minute = int.Parse(timesRaw[i].Substring(3, 2));
-			int day = int.Parse(timesRaw[i].Substring(7, 2));
-			int month = 0;
-			switch(timesRaw[i].Substring(10, timesRaw[i].IndexOf(' ', 10) - 10))
-			{
-			case "January":
-				month = 1;
-				break;
-			case "February":
-				month = 2;
-				break;
-			case "March":
-				month = 3;
-				break;
-			case "April":
-				month = 4;
-				break;
-			case "May":
-				month = 5;
-				break;
-			case "June":
-				month = 6;
-				break;
-			case "July":
-				month = 7;
-				break;
-			case "August":
-				month = 8;
-				break;
-			case "September":
-				month = 9;
-				break;
-			case "October":
-				month = 10;
-				break;
-			case "November":
-				month = 11;
-				break;
-			case "December":
-				month = 12;
-				break;
-			}
-			int year = int.Parse(timesRaw[i].Substring(timesRaw[i].LastIndexOf(' ') + 1));
-			timesParsed[i] = new System.DateTime(year, month, day, hour, minute, 0);
-		}
-
-		ReversionTime = timesParsed[1] - timesParsed[0];
-
-		string concat = "";
-		foreach (string line in deleted)
-			concat += line + System.Environment.NewLine;
-		foreach (string line in added)
-			concat += line + System.Environment.NewLine;
-
-		numLoops = 0;
-
-		// Strip tags.
-		char[] stripped = new char[concat.Length];
-		int length = 0;
-
-		bool tagAngle = false;	// <...>
-		bool tagCurly = false;	// {...}
-		bool tagSquare = false;	// [...]
-		bool tagApsSc = false;	// &...;
-		bool tagHash = false;	// #... 
-
-		for (int i = 0; i < stripped.Length; ++i)
-		{
-			char c = concat[i];
-			switch (c)
-			{
-			case '<':
-				tagAngle = true;
-				break;
-			case '>':
-				tagAngle = false;
-				break;
-			case '{':
-				tagCurly = true;
-				break;
-			case '}':
-				tagCurly = false;
-				break;
-			case '[':
-				tagSquare = true;
-				break;
-			case ']':
-				tagSquare = false;
-				break;
-			case '&':
-				tagApsSc = true;
-				break;
-			case ';':
-				tagApsSc = false;
-				break;
-			case '#':
-				tagHash = true;
-				break;
-			case ' ':
-				tagHash = false;
-				break;
-			}
-
-			if (!tagAngle && !tagCurly && !tagSquare && !tagApsSc && !tagHash && (char.IsLetter(c) || char.IsWhiteSpace(c)))
-				stripped[length++] = c;
-			else
-				stripped[length++] = ' ';
-			
-			if (++numLoops == LOOPS_PER_FRAME)
-			{
-				numLoops = 0;
-				yield return new WaitForEndOfFrame();
-			}
-		}
-
-		// Split into words.  If there are more words in deleted than added, use deleted and vice versa.
-		char[] split = new char[] {' '};
-		string[] strippedWords = (new string(stripped, 0, length)).Split(split, System.StringSplitOptions.RemoveEmptyEntries);
-		List<string> whitespaceRemoved = new List<string>();
-
-		foreach (string titleWord in Data.page_title.Split(split, System.StringSplitOptions.RemoveEmptyEntries))
-			whitespaceRemoved.Add(titleWord);
-
-		numLoops = 0;
-
-		for (int i = 0; i < strippedWords.Length; ++i)
-		{
-			for (int j = 0; j < strippedWords[i].Length; ++j)
-			{
-				if (!char.IsWhiteSpace(strippedWords[i][j]))
-				{
-					whitespaceRemoved.Add(strippedWords[i]);
-					break;
-				}
-			}
-
-			if (++numLoops == LOOPS_PER_FRAME)
-			{
-				numLoops = 0;
-				yield return new WaitForEndOfFrame();
-			}
-		}
-
-		words = whitespaceRemoved.ToArray();
-	}
-	
 	void SpawnEnemies()
 	{
 		spawnTimer += Time.deltaTime;
@@ -621,13 +412,6 @@ public class scrNode : MonoBehaviour
 
 			spawnTimer = 0;
 		}
-	}
-
-	void SpawnBoss()
-	{
-		string bossTime = ReversionTime.Days + "d " + ReversionTime.Hours + "h " + ReversionTime.Minutes + "m ";
-
-		
 	}
 
 	public float GetInfectionAmount()
@@ -729,17 +513,6 @@ public class scrNode : MonoBehaviour
 			if (FullyInfected)
 			{
 				SpawnEnemies();
-
-				bossMakeTimer += Time.deltaTime;
-				if (bossMakeTimer >= bossMakeDuration)
-				{
-					SpawnBoss();
-					foreach (LinkedListNode<GameObject> c in Cubes)
-					{
-						if (c != null && c.Value != null && c.Value.activeSelf)
-							c.Value.GetComponent<scrCube>().DestroyImmediate();
-					}
-				}
 
 				// Clear redundant links and animate current links.
 				float halfLinkExpandDuration = linkExpandDuration * 0.5f;

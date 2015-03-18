@@ -16,6 +16,7 @@ public class scrGUI : MonoBehaviour
 	GameObject powerupItemTemplate;
 	List<Text> powerupItems = new List<Text>();
 
+	private Text scoreText;
 
 	// Use this for initialization
 	void Start ()
@@ -34,6 +35,8 @@ public class scrGUI : MonoBehaviour
 
 		powerupItemTemplate = transform.Find ("PowerupItem").gameObject;
 		powerupItemTemplate.SetActive(false);
+
+		scoreText = transform.Find ("Score").GetComponent<Text>();
 	}
 	
 	// Update is called once per frame
@@ -41,7 +44,7 @@ public class scrGUI : MonoBehaviour
 	{
 		transform.Find ("Cursor").position = Camera.main.WorldToScreenPoint(scrPlayer.Instance.SimulatedCursorPosition);
 
-
+		scoreText.text = "Score: " + scrResults.Score;
 	}
 
 	public void AddToFeed(string text, Color colour)

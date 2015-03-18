@@ -1,11 +1,14 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\NodeMaster\Node\scrNode.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\NodeMaster\scrNodeMaster.cs">
     <Files>
-      <File FileName="Assets\scrWebSocketClient.cs" Line="20" Column="2" />
-      <File FileName="Assets\NodeMaster\Node\scrNode.cs" Line="630" Column="3" />
-      <File FileName="Assets\scrMaster.cs" Line="139" Column="45" />
-      <File FileName="Assets\NodeMaster\scrNodeMaster.cs" Line="170" Column="2" />
+      <File FileName="Assets\NodeMaster\scrNodeMaster.cs" Line="372" Column="5" />
+      <File FileName="Assets\NodeMaster\Node\scrNode.cs" Line="379" Column="1" />
+      <File FileName="Assets\EnemyMaster\NodeBoss\scrBoss.cs" Line="147" Column="1" />
+      <File FileName="Assets\scrResults.cs" Line="151" Column="1" />
+      <File FileName="Assets\GUI\scrGUI.cs" Line="118" Column="1" />
+      <File FileName="Assets\EnemyMaster\User\scrUserEnemy.cs" Line="171" Column="2" />
+      <File FileName="Assets\Player\scrPlayer.cs" Line="253" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

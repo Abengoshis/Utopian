@@ -9,6 +9,10 @@ public class scrNodeMaster : MonoBehaviour
 
 	const int LOOPS_PER_FRAME = 100;
 
+	const string DELETED_TAG = "  <td class=\"diff-deletedline\"><div>";
+	const string ADDED_TAG =   "  <td class=\"diff-addedline\"><div>";
+	const string WIKITAG_TAG = "<span class=\"mw-tag-marker";
+
 	#region Pool Variables
 
 	const int TOTAL_NODES = 100;
@@ -46,6 +50,8 @@ public class scrNodeMaster : MonoBehaviour
 	Queue<Message> infectedBufferQueue = new Queue<Message>();	// Buffer of infected cubes accumulated between transitions.
 	Queue<Message> messageQueue = new Queue<Message>();
 	bool creating = false;
+	string[] creatingWords;
+	Message creatingMessage;
 
 	public scrNode NodeBeingUploaded { get; private set; }
 
@@ -65,6 +71,7 @@ public class scrNodeMaster : MonoBehaviour
 	public static Color ColCoreInfected { get; private set; }
 
 	public GameObject Grid;
+	public GameObject NodeBossPrefab;
 
 	#region Pool Functions
 
@@ -227,6 +234,16 @@ public class scrNodeMaster : MonoBehaviour
 	{
 		return value * CELL_SIZE - Vector2.one * GRID_SIZE * CELL_SIZE * 0.5f;
 	}
+
+	void SpawnBoss(Message message)
+	{
+		messageQueue.Dequeue();
+		scrGUI.Instance.AddToFeed(message.page_title, Color.red);
+		scrBoss boss = ((GameObject)Instantiate(NodeBossPrefab, GetRandomFreePosition(true), Quaternion.identity)).GetComponent<scrBoss>();
+		boss.Init(message);
+		scrResults.ReversionEdits.Add(message);
+	}
+
 	// Use this for initialization
 	void Start ()
 	{
@@ -253,7 +270,7 @@ public class scrNodeMaster : MonoBehaviour
 		// Disable. Reenabled by the master.
 		enabled = false;
 	}
-	
+
 	// Update is called once per frame
 	void Update ()
 	{
@@ -270,19 +287,27 @@ public class scrNodeMaster : MonoBehaviour
 			// Check the message for certain criteria to determine whether or not to make an infected or uninfected node.
 			string summary = message.summary != null ? message.summary.ToUpper() : "";
 
-			if (summary.Length == 0 || !(summary.Contains("UNDID") || summary.Contains ("UNDO") || summary.Contains("REVERT") || summary.Contains("REVERSION") || summary.Contains("VANDAL") || summary.Contains("SPAM")))
+			if (summary.Contains("VANDAL") || summary.Contains("SPAM"))
+			{
+				SpawnBoss(message);
+			}
+			else if (summary.Length == 0 || !(summary.Contains("UNDID") || summary.Contains ("UNDO") || summary.Contains("REVERT") || summary.Contains("REVERSION")))
 			{
 				// Remove the message if it isn't infected so it's more likely infected nodes accumulate.
-				messageQueue.Dequeue();
+				//messageQueue.Dequeue();
 
 				// If the user is not a bot and not anonymous, create the node.  An edit by a bot that is not a vandalism reversion is unlikely to contain any decent information.
-				if (message.is_bot || message.is_anon || creating || message.change_size == 0)
+				//if (message.is_bot || message.is_anon || creating || message.change_size == 0)
+				//{
+				//	scrGUI.Instance.AddToFeed(message.page_title, new Color(0.1f, 0.1f, 0.1f));
+				//}
+				//else
+				if (!creating)
 				{
-					scrGUI.Instance.AddToFeed(message.page_title, new Color(0.1f, 0.1f, 0.1f));
-				}
-				else
-				{
-					StartCoroutine(Create (message, false));
+					messageQueue.Dequeue();
+
+					if (!message.is_bot)
+						StartCoroutine(Create (message, false));
 				}
 			}
 			else
@@ -335,9 +360,172 @@ public class scrNodeMaster : MonoBehaviour
 		}
 	}
 
+	IEnumerator Parse()
+	{
+		int numLoops = 0;
+		
+		// Load the page.
+		WWW page = new WWW(creatingMessage.url);
+		while (!page.isDone)
+		{
+			if (++numLoops == LOOPS_PER_FRAME)
+			{
+				numLoops = 0;
+				yield return new WaitForEndOfFrame();
+			}
+		}
+		
+		numLoops = 0;
+		
+		// Get the deleted and added content.
+		string[] lines = page.text.Split('\n');
+		List<string> deleted = new List<string>();
+		List<string> added = new List<string>();
+		foreach (string line in lines)
+		{
+			if (line.StartsWith(DELETED_TAG))
+				deleted.Add (line);
+			else if (line.StartsWith(ADDED_TAG))
+				added.Add (line);
+			
+			if (line.Contains(WIKITAG_TAG))
+			{
+				if (line.Contains("blanking") || line.Contains("vandal") || line.Contains("repeating") ||
+				    line.Contains ("shouting") || line.Contains("nonsense") || line.Contains("spam"))
+				{
+					creatingMessage.summary = "vandal";
+					scrResults.ReversionEdits.Add(creatingMessage);
+					scrGUI.Instance.AddToFeed(creatingMessage.page_title, Color.red);
+					scrBoss boss = ((GameObject)Instantiate(NodeBossPrefab, transform.position, Quaternion.identity)).GetComponent<scrBoss>();
+					boss.Init(creatingMessage);
+					scrResults.ReversionEdits.Add(creatingMessage);
+					creating = false;
+					yield break;
+				}
+			}
+			
+			if (++numLoops > LOOPS_PER_FRAME)
+			{
+				numLoops = 0;
+				yield return new WaitForEndOfFrame();
+			}
+		}
+		
+		string concat = "";
+		foreach (string line in deleted)
+			concat += line + System.Environment.NewLine;
+		foreach (string line in added)
+			concat += line + System.Environment.NewLine;
+		
+		numLoops = 0;
+		
+		// Strip tags.
+		char[] stripped = new char[concat.Length];
+		int length = 0;
+		
+		bool tagAngle = false;	// <...>
+		bool tagCurly = false;	// {...}
+		bool tagSquare = false;	// [...]
+		bool tagApsSc = false;	// &...;
+		bool tagHash = false;	// #... 
+		
+		for (int i = 0; i < stripped.Length; ++i)
+		{
+			char c = concat[i];
+			switch (c)
+			{
+			case '<':
+				tagAngle = true;
+				break;
+			case '>':
+				tagAngle = false;
+				break;
+			case '{':
+				tagCurly = true;
+				break;
+			case '}':
+				tagCurly = false;
+				break;
+			case '[':
+				tagSquare = true;
+				break;
+			case ']':
+				tagSquare = false;
+				break;
+			case '&':
+				tagApsSc = true;
+				break;
+			case ';':
+				tagApsSc = false;
+				break;
+			case '#':
+				tagHash = true;
+				break;
+			case ' ':
+				tagHash = false;
+				break;
+			}
+			
+			if (!tagAngle && !tagCurly && !tagSquare && !tagApsSc && !tagHash && (char.IsLetter(c) || char.IsWhiteSpace(c)))
+				stripped[length++] = c;
+			else
+				stripped[length++] = ' ';
+			
+			if (++numLoops == LOOPS_PER_FRAME)
+			{
+				numLoops = 0;
+				yield return new WaitForEndOfFrame();
+			}
+		}
+		
+		// Split into words.  If there are more words in deleted than added, use deleted and vice versa.
+		char[] split = new char[] {' '};
+		string[] strippedWords = (new string(stripped, 0, length)).Split(split, System.StringSplitOptions.RemoveEmptyEntries);
+		List<string> whitespaceRemoved = new List<string>();
+		
+		foreach (string titleWord in creatingMessage.page_title.Split(split, System.StringSplitOptions.RemoveEmptyEntries))
+			whitespaceRemoved.Add(titleWord);
+		
+		numLoops = 0;
+		
+		for (int i = 0; i < strippedWords.Length; ++i)
+		{
+			for (int j = 0; j < strippedWords[i].Length; ++j)
+			{
+				if (!char.IsWhiteSpace(strippedWords[i][j]))
+				{
+					whitespaceRemoved.Add(strippedWords[i]);
+					break;
+				}
+			}
+			
+			if (++numLoops == LOOPS_PER_FRAME)
+			{
+				numLoops = 0;
+				yield return new WaitForEndOfFrame();
+			}
+		}
+		
+		creatingWords = whitespaceRemoved.ToArray();
+	}
+
 	public IEnumerator Create(Message message, bool infected)
 	{
 		creating = true;
+
+		if (message.is_anon)
+			message.user = "Anonymous";
+
+		creatingMessage = message;
+
+		yield return StartCoroutine(Parse ());
+
+		// Check if vandal tags detected.
+		if (creating == false)
+		{
+			SpawnBoss(message);
+			yield break;
+		}
 
 		if (scrMaster.Instance.Transitioning)
 		{
@@ -435,7 +623,7 @@ public class scrNodeMaster : MonoBehaviour
 		ActivateNode(node);
 		node.Value.transform.position = PopRandomFreePosition();
 		scrNode nodeScript = node.Value.GetComponent<scrNode>();
-		nodeScript.Init(node, message, coreSize, infected);
+		nodeScript.Init(node, message, coreSize, infected, creatingWords);
 		// Set the cell's state to either infected or, if contribution is positive, clean else blocked.
 		CellStates[ToCellSpace(nodeScript.transform.position.x), ToCellSpace(nodeScript.transform.position.y)] = infected ? CellState.INFECTED : nodeScript.Data.change_size > 0 ? CellState.CLEAN : CellState.BLOCKED;
 
