@@ -6,8 +6,8 @@ public class scrAICore : MonoBehaviour
 {
 	public static scrAICore Instance { get; private set; }
 
-	public int Intelligence { get; private set; }
-	public int Corruption { get; private set; }
+	public float Intelligence { get; private set; }
+	public float Corruption { get; private set; }
 	const int CORRUPTION_MAX = 100;
 	const int INTELLIGENCE_MAX = 500;
 
@@ -88,13 +88,13 @@ public class scrAICore : MonoBehaviour
 		}
 	}
 
-	public void Learn(bool infected)
+	public void Learn(bool infected, float amount = 1.0f)
 	{
-		++Intelligence;
+		Intelligence += amount;
 		intelligenceSlider.value = (float)Intelligence / INTELLIGENCE_MAX;
 		if (infected)
 		{
-			++Corruption;
+			Corruption += amount;
 			corruptionSlider.value = (float)Corruption / CORRUPTION_MAX;
 		}
 

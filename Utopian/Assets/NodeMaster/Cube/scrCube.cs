@@ -111,7 +111,8 @@ public class scrCube : MonoBehaviour
 			// While uploading (pathing towards the core) check if within the core.
 			if (transform.position.x < 10 && transform.position.x > -10 && transform.position.y < 10 && transform.position.y > -10)
 			{
-				scrAICore.Instance.Learn (State == DataState.INFECTED);
+				if (State != DataState.BLOCKED)
+					scrAICore.Instance.Learn (State == DataState.INFECTED);
 
 				scrNodeMaster.Instance.DeactivateCube(Cube);
 				Uploading = false;
@@ -190,9 +191,12 @@ public class scrCube : MonoBehaviour
 		if (c.gameObject.layer == LayerMask.NameToLayer("PBullet") || c.gameObject.layer == LayerMask.NameToLayer("EBullet"))
 		{
 			scrBullet bullet = c.gameObject.GetComponent<scrBullet>();
-			if (bullet.Infecter && State != DataState.INFECTED)
+			if (bullet.Infecter)
 			{
-				Infect ();
+				if (State != DataState.INFECTED)
+				{
+					Infect ();
+				}
 			}
 			else
 			{

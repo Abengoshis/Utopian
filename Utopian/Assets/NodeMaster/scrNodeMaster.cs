@@ -287,27 +287,25 @@ public class scrNodeMaster : MonoBehaviour
 			// Check the message for certain criteria to determine whether or not to make an infected or uninfected node.
 			string summary = message.summary != null ? message.summary.ToUpper() : "";
 
-			if (summary.Contains("VANDAL") || summary.Contains("SPAM"))
-			{
-				SpawnBoss(message);
-			}
-			else if (summary.Length == 0 || !(summary.Contains("UNDID") || summary.Contains ("UNDO") || summary.Contains("REVERT") || summary.Contains("REVERSION")))
+//			if (summary.Contains("VANDAL") || summary.Contains("SPAM"))
+//			{
+//				SpawnBoss(message);
+//			}
+			if (summary.Length == 0 || !(summary.Contains("VANDAL") || summary.Contains("SPAM") || summary.Contains("UNDID") || summary.Contains ("UNDO") || summary.Contains("REVERT") || summary.Contains("REVERSION")))
 			{
 				// Remove the message if it isn't infected so it's more likely infected nodes accumulate.
 				//messageQueue.Dequeue();
 
 				// If the user is not a bot and not anonymous, create the node.  An edit by a bot that is not a vandalism reversion is unlikely to contain any decent information.
-				//if (message.is_bot || message.is_anon || creating || message.change_size == 0)
-				//{
-				//	scrGUI.Instance.AddToFeed(message.page_title, new Color(0.1f, 0.1f, 0.1f));
-				//}
-				//else
-				if (!creating)
+				if (message.is_bot || message.is_anon)
+				{
+					scrGUI.Instance.AddToFeed(message.page_title, new Color(0.1f, 0.1f, 0.1f));
+					messageQueue.Dequeue();
+				}
+				else if (!creating)
 				{
 					messageQueue.Dequeue();
-
-					if (!message.is_bot)
-						StartCoroutine(Create (message, false));
+					StartCoroutine(Create (message, false));
 				}
 			}
 			else
@@ -327,12 +325,12 @@ public class scrNodeMaster : MonoBehaviour
 		// Check if the node has finished uploading.
 		if (SelectNewNode)
 		{
-			// Get the next node to upload.  This should be the earliest node added that isn't blocked, fully infected, or inactive.
+			// Get the next node to upload.  This should be the earliest node added that isn't inactive.
 			if (inactiveNodeCount > 0)
 			{
 				foreach (GameObject n in nodePool)
 				{
-					if (n.activeSelf && !n.GetComponent<scrNode>().Blocked)
+					if (n.activeSelf)
 					{
 						NodeBeingUploaded = n.GetComponent<scrNode>();
 						SelectNewNode = false;
@@ -387,22 +385,22 @@ public class scrNodeMaster : MonoBehaviour
 				deleted.Add (line);
 			else if (line.StartsWith(ADDED_TAG))
 				added.Add (line);
-			
-			if (line.Contains(WIKITAG_TAG))
-			{
-				if (line.Contains("blanking") || line.Contains("vandal") || line.Contains("repeating") ||
-				    line.Contains ("shouting") || line.Contains("nonsense") || line.Contains("spam"))
-				{
-					creatingMessage.summary = "vandal";
-					scrResults.ReversionEdits.Add(creatingMessage);
-					scrGUI.Instance.AddToFeed(creatingMessage.page_title, Color.red);
-					scrBoss boss = ((GameObject)Instantiate(NodeBossPrefab, transform.position, Quaternion.identity)).GetComponent<scrBoss>();
-					boss.Init(creatingMessage);
-					scrResults.ReversionEdits.Add(creatingMessage);
-					creating = false;
-					yield break;
-				}
-			}
+//			
+//			if (line.Contains(WIKITAG_TAG))
+//			{
+//				if (line.Contains("blanking") || line.Contains("vandal") || line.Contains("repeating") ||
+//				    line.Contains ("shouting") || line.Contains("nonsense") || line.Contains("spam"))
+//				{
+//					creatingMessage.summary = "vandal";
+//					scrResults.ReversionEdits.Add(creatingMessage);
+//					scrGUI.Instance.AddToFeed(creatingMessage.page_title, Color.red);
+//					scrBoss boss = ((GameObject)Instantiate(NodeBossPrefab, transform.position, Quaternion.identity)).GetComponent<scrBoss>();
+//					boss.Init(creatingMessage);
+//					scrResults.ReversionEdits.Add(creatingMessage);
+//					creating = false;
+//					yield break;
+//				}
+//			}
 			
 			if (++numLoops > LOOPS_PER_FRAME)
 			{
@@ -773,7 +771,9 @@ public class scrNodeMaster : MonoBehaviour
 			}
 		}
 		
-		return positions[Random.Range(0, freePositionsCount)];
+		Vector3 pos = positions[Random.Range(0, freePositionsCount)];
+		pos.z = 0;
+		return pos;	
 	}
 
 	Vector3 PopRandomFreePosition()

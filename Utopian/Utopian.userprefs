@@ -1,14 +1,18 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\NodeMaster\scrNodeMaster.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\NodeMaster\Cube\scrCube.cs">
     <Files>
-      <File FileName="Assets\NodeMaster\scrNodeMaster.cs" Line="372" Column="5" />
-      <File FileName="Assets\NodeMaster\Node\scrNode.cs" Line="379" Column="1" />
-      <File FileName="Assets\EnemyMaster\NodeBoss\scrBoss.cs" Line="147" Column="1" />
-      <File FileName="Assets\scrResults.cs" Line="151" Column="1" />
-      <File FileName="Assets\GUI\scrGUI.cs" Line="118" Column="1" />
-      <File FileName="Assets\EnemyMaster\User\scrUserEnemy.cs" Line="171" Column="2" />
-      <File FileName="Assets\Player\scrPlayer.cs" Line="253" Column="1" />
+      <File FileName="Assets\NodeMaster\scrNodeMaster.cs" Line="328" Column="96" />
+      <File FileName="Assets\EnemyMaster\NodeBoss\scrBoss.cs" Line="280" Column="56" />
+      <File FileName="Assets\EnemyMaster\scrEnemy.cs" Line="43" Column="2" />
+      <File FileName="Assets\EnemyMaster\User\scrUserEnemy.cs" Line="143" Column="43" />
+      <File FileName="Assets\NodeMaster\Node\scrNode.cs" Line="185" Column="11" />
+      <File FileName="Assets\EnemyMaster\WordEnemy\scrWordEnemy.cs" Line="110" Column="208" />
+      <File FileName="Assets\EnemyMaster\Snake\scrSnakeEnemy.cs" Line="65" Column="7" />
+      <File FileName="Assets\Bullets\scrBulletPool.cs" Line="59" Column="10" />
+      <File FileName="Assets\Bullets\scrBullet.cs" Line="80" Column="25" />
+      <File FileName="Assets\NodeMaster\Cube\scrCube.cs" Line="112" Column="78" />
+      <File FileName="Assets\Wikiworld\scrAICore.cs" Line="10" Column="14" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

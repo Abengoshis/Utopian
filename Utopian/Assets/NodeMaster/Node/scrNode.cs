@@ -122,9 +122,6 @@ public class scrNode : MonoBehaviour
 
 	public void Init(LinkedListNode<GameObject> node, Message data, int coreSize, bool infected, string[] words)
 	{
-		if (coreSize == 0)
-			Debug.Log ("WHAT");
-
 		ready = false;
 		Node = node;
 		Data = data;
@@ -183,6 +180,9 @@ public class scrNode : MonoBehaviour
 			infectionPulseDelay = PULSE_DELAY_MAX * (1 - (coreSize - 1) / CORE_SIZE_MAX);
 			InfectedCubeCount = Cubes.Length;
 			ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreInfected;
+
+			scrBoss boss = ((GameObject)Instantiate(scrNodeMaster.Instance.NodeBossPrefab, transform.position, Quaternion.identity)).GetComponent<scrBoss>();
+			boss.Init(Data);
 		}
 		else
 		{

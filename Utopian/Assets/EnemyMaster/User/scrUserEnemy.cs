@@ -164,7 +164,7 @@ public class scrUserEnemy : scrEnemy
 		for (int i = 0; i < numTimes; ++i)
 		{
 			audio.PlayOneShot(FireSound);
-			scrEnemyMaster.BulletPool.Create (powerup, transform.position, transform.right, false, true);
+			scrEnemyMaster.BulletPool.Create (powerup, transform.position, transform.right, false, false);
 			yield return new WaitForSeconds(0.1f);
 		}
 	}
