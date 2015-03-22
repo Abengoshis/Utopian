@@ -71,6 +71,7 @@
      <Compile Include="Assets\scrMusicMaster.cs" />
      <Compile Include="Assets\scrPathfinder.cs" />
      <Compile Include="Assets\scrResults.cs" />
+     <Compile Include="Assets\scrTutorial.cs" />
      <Compile Include="Assets\scrWebSocketClient.cs" />
      <None Include="Assets\NodeMaster\Cube\shdCube.shader" />
      <None Include="Assets\NodeMaster\shdGrid.shader" />

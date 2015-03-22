@@ -129,13 +129,13 @@ public class scrBoss : scrEnemy
 		{
 			transform.localScale = Vector3.one * 0.5f;
 			rotateSpeed = 20.0f;
-			fireRate = 5.0f;
+			fireRate = 3.0f;
 		}
 		else if (ReversionTime.TotalMinutes < 30.0f)
 		{
 			transform.localScale = Vector3.one * 0.6f;
 			rotateSpeed = -20.0f;
-			fireRate = 3.0f;
+			fireRate = 2.0f;
 		}
 		else if (ReversionTime.TotalHours < 1.0f)
 		{
@@ -160,7 +160,7 @@ public class scrBoss : scrEnemy
 			rotateSpeed = -5.0f;
 			fireRate = 0.1f;
 		}
-		DamageToDestroy = transform.localScale.x * 300.0f;
+		DamageToDestroy = transform.localScale.x * 200.0f;
 
 		pathfinder.Speed = Mathf.Abs (rotateSpeed) * 0.5f;
 	}

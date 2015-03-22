@@ -1,3 +1,57 @@
 Base path: C:/Program Files/Unity/Editor/Data
-Pipe name: \\.\pipe\UnityShaderCompiler-1-2916
+Pipe name: \\.\pipe\UnityShaderCompiler-1-5564
 Cmd: getPlatforms
+Cmd: compileSnippet
+  error: 2 plat 1 at (0): Arithmetic instruction limit of 64 exceeded; 85 arithmetic instructions needed to compile program
+  api=1 type=1 insize=1760 outsize=0 kw= ok=0
+Cmd: compileSnippet
+  error: 2 plat 1 at (89): operands to "%" must be integral
+  error: 2 plat 1 at (97): operands to "%" must be integral
+  error: 2 plat 1 at (105): operands to "%" must be integral
+  api=1 type=0 insize=2379 outsize=0 kw= ok=0
+Cmd: compileSnippet
+  error: 2 plat 0 at (89): operands to "%" must be integral
+  error: 2 plat 0 at (97): operands to "%" must be integral
+  error: 2 plat 0 at (105): operands to "%" must be integral
+  api=0 type=1 insize=2379 outsize=0 kw= ok=0
+Cmd: compileSnippet
+  error: 2 plat 1 at (89): operands to "%" must be integral
+  error: 2 plat 1 at (97): operands to "%" must be integral
+  error: 2 plat 1 at (105): operands to "%" must be integral
+  api=1 type=0 insize=2379 outsize=0 kw= ok=0
+Cmd: compileSnippet
+  error: 2 plat 1 at (89): operands to "%" must be integral
+  error: 2 plat 1 at (97): operands to "%" must be integral
+  error: 2 plat 1 at (105): operands to "%" must be integral
+  api=1 type=1 insize=2379 outsize=0 kw= ok=0
+Cmd: compileSnippet
+  error: 2 plat 1 at (0): Arithmetic instruction limit of 64 exceeded; 85 arithmetic instructions needed to compile program
+  api=1 type=1 insize=1760 outsize=0 kw= ok=0
+Cmd: compileSnippet
+  error: 2 plat 1 at (89): operands to "%" must be integral
+  error: 2 plat 1 at (97): operands to "%" must be integral
+  error: 2 plat 1 at (105): operands to "%" must be integral
+  api=1 type=0 insize=2379 outsize=0 kw= ok=0
+Cmd: compileSnippet
+  error: 2 plat 0 at (89): operands to "%" must be integral
+  error: 2 plat 0 at (97): operands to "%" must be integral
+  error: 2 plat 0 at (105): operands to "%" must be integral
+  api=0 type=1 insize=2379 outsize=0 kw= ok=0
+Cmd: compileSnippet
+  error: 2 plat 1 at (0): Arithmetic instruction limit of 64 exceeded; 85 arithmetic instructions needed to compile program
+  api=1 type=1 insize=1760 outsize=0 kw= ok=0
+Cmd: compileSnippet
+  error: 2 plat 1 at (89): operands to "%" must be integral
+  error: 2 plat 1 at (97): operands to "%" must be integral
+  error: 2 plat 1 at (105): operands to "%" must be integral
+  api=1 type=0 insize=2379 outsize=0 kw= ok=0
+Cmd: compileSnippet
+  error: 2 plat 0 at (89): operands to "%" must be integral
+  error: 2 plat 0 at (97): operands to "%" must be integral
+  error: 2 plat 0 at (105): operands to "%" must be integral
+  api=0 type=1 insize=2379 outsize=0 kw= ok=0
+Cmd: compileSnippet
+  error: 2 plat 0 at (89): operands to "%" must be integral
+  error: 2 plat 0 at (97): operands to "%" must be integral
+  error: 2 plat 0 at (105): operands to "%" must be integral
+  api=0 type=1 insize=2379 outsize=0 kw= ok=0

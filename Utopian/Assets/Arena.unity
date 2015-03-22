@@ -172,7 +172,7 @@ AudioSource:
   m_Volume: .600000024
   m_Pitch: 1
   Loop: 1
-  Mute: 1
+  Mute: 0
   Priority: 128
   DopplerLevel: 1
   MinDistance: 1
@@ -272,6 +272,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f82c334bc9343454598bb7676337233a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Tutorial: 0
   TextBlipSound: {fileID: 8300000, guid: dab58d55f5c8617458a57fa555467410, type: 3}
 --- !u!4 &110506283
 Transform:
@@ -1781,6 +1782,10 @@ Prefab:
       propertyPath: m_Color.a
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 11481596, guid: 7246c481520d13b4c9044d5da69c5926, type: 2}
+      propertyPath: damageToDestroy
+      value: 64
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 7246c481520d13b4c9044d5da69c5926, type: 2}
   m_RootGameObject: {fileID: 557878488}
@@ -2016,9 +2021,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Grade: 413612
-
-'
+  m_Text: 
 --- !u!222 &297251484
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2841,6 +2844,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SimulatedCursorSensitivity: 10
+  damageToDestroy: 64
   FireSound: {fileID: 8300000, guid: b1aa1e178108c5646afc1c2dadd54a61, type: 3}
   BombExplosionPrefab: {fileID: 107466, guid: 9ce1326d27fde2d4f970594c4cf884ed, type: 2}
   ChildShine: {fileID: 273439868}

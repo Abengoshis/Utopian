@@ -44,9 +44,10 @@ public class scrAICore : MonoBehaviour
 				rotation += 360;
 
 			// Has rotated to the right direction? (Do this with smoothstep and work out timer in future). In fact do all of this with a timer you dumpass!
-			if (Mathf.Abs ((int)ChildArm.transform.eulerAngles.z - (int)rotation) < 5)
+			Debug.Log (Mathf.DeltaAngle(transform.eulerAngles.z, rotation));
+			if (Mathf.Abs (Mathf.DeltaAngle(transform.eulerAngles.z, rotation)) < 2)
 			{
-				ChildArm.transform.eulerAngles = new Vector3(0, 0, rotation);
+				transform.eulerAngles = new Vector3(0, 0, rotation);
 
 				if (Vector3.Distance(ChildFocus.transform.position, scrNodeMaster.Instance.NodeBeingUploaded.transform.position) < 0.1f) 
 				{
@@ -83,7 +84,7 @@ public class scrAICore : MonoBehaviour
 				ArmLocked = false;
 
 				// Rotate so that the arms align with the node.
-				transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0, 0, rotation), 80 * Time.deltaTime);
+				transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0.0f, 0.0f, rotation), 80 * Time.deltaTime);
 			}
 		}
 	}

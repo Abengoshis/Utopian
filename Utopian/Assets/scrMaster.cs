@@ -4,6 +4,8 @@ using UnityEngine.UI;
 
 public class scrMaster : MonoBehaviour
 {
+	public bool Tutorial;
+
 	public static scrMaster Instance { get; private set; }
 	public static bool Loading { get; private set; }
 	public static bool GameOver { get; private set; }
@@ -46,13 +48,17 @@ public class scrMaster : MonoBehaviour
 		transitionTimeText = transitionText.transform.Find ("TransitionTime").GetComponent<Text>();
 		waveSlider = guiCanvas.transform.Find ("WaveSlider").GetComponent<Slider>();
 
-
-		Transitioning = true;
-		TransitionDuration = 10;
-		TransitionTimer = 0;
-		WaveDuration = 120;
-		WaveTimer = 0;
-		Wave = 0;
+		if (!Tutorial)
+		{
+			Transitioning = true;
+			TransitionDuration = 10;
+			TransitionTimer = 0;
+			WaveDuration = 120;
+			WaveTimer = 0;
+			Wave = 0;
+		}
+		else
+			Transitioning = false;
 
 		StartCoroutine(LoadAll());
 	}
@@ -61,8 +67,9 @@ public class scrMaster : MonoBehaviour
 	{
 		if (Input.GetButton("Cancel"))
 		{
-			scrWebSocketClient.Instance.Close();
-
+			if (scrWebSocketClient.Instance != null)
+				scrWebSocketClient.Instance.Close();
+				
 			ItsGameOverMan();
 		}
 
@@ -123,7 +130,7 @@ public class scrMaster : MonoBehaviour
 				else
 					transitionTimeText.color = Color.grey;
 			}
-			else
+			else if (!Tutorial)
 			{
 				WaveTimer += Time.deltaTime;
 				if (WaveTimer >= WaveDuration)
@@ -175,12 +182,12 @@ public class scrMaster : MonoBehaviour
 		// text...
 		loadingAmount += loadingIncrement;
 		yield return new WaitForEndOfFrame();
-		yield return StartCoroutine(scrNodeMaster.Instance.LoadNodePool());
+		yield return StartCoroutine(scrNodeMaster.Instance.LoadNodePool(Tutorial));
 
 		// text...
 		loadingAmount += loadingIncrement;
 		yield return new WaitForEndOfFrame();
-		yield return StartCoroutine(scrNodeMaster.Instance.LoadCubePool());
+		yield return StartCoroutine(scrNodeMaster.Instance.LoadCubePool(Tutorial));
 
 		// text...
 		loadingAmount += loadingIncrement;
@@ -225,7 +232,16 @@ public class scrMaster : MonoBehaviour
 		scrMusicMaster.Instance.enabled = false;
 
 		scrFadeTransition.Instance.FadeOut(5.0f);
-		Invoke("GoToResults", 5.0f);
+
+		if (Tutorial)
+			Invoke("GoToMenu", 5.0f);
+		else
+			Invoke("GoToResults", 5.0f);
+	}
+
+	void GoToMenu()
+	{
+		Application.LoadLevel("Menu");
 	}
 
 	void GoToResults()

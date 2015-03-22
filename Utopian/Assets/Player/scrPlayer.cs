@@ -14,7 +14,7 @@ public class scrPlayer : MonoBehaviour
 	float simulatedCursorRadius = 80.0f;
 
 	// --
-	float damageToDestroy = 640000000.0f;
+	public float damageToDestroy;
 	float damageTimer = 0;
 	Renderer[] renderers;
 	Color[] colours;

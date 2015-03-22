@@ -35,16 +35,12 @@ public class scrGUI : MonoBehaviour
 
 		powerupItemTemplate = transform.Find ("PowerupItem").gameObject;
 		powerupItemTemplate.SetActive(false);
-
-		scoreText = transform.Find ("Score").GetComponent<Text>();
 	}
 	
 	// Update is called once per frame
 	void Update ()
 	{
 		transform.Find ("Cursor").position = Camera.main.WorldToScreenPoint(scrPlayer.Instance.SimulatedCursorPosition);
-
-		scoreText.text = "Score: " + scrResults.Score;
 	}
 
 	public void AddToFeed(string text, Color colour)

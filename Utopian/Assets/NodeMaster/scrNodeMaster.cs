@@ -75,12 +75,12 @@ public class scrNodeMaster : MonoBehaviour
 
 	#region Pool Functions
 
-	public IEnumerator LoadNodePool()
+	public IEnumerator LoadNodePool(bool tutorial = false)
 	{
 		if (!nodePoolLoaded)
 		{
 			nodePool = new LinkedList<GameObject>();
-			inactiveNodeCount = TOTAL_NODES;
+			inactiveNodeCount = tutorial ? TOTAL_NODES / 10 : TOTAL_NODES;
 
 			int numLoops = 0;
 			bool newBatch = true;
@@ -112,12 +112,12 @@ public class scrNodeMaster : MonoBehaviour
 		}
 	}
 
-	public IEnumerator LoadCubePool()
+	public IEnumerator LoadCubePool(bool tutorial = false)
 	{
 		if (!cubePoolLoaded)
 		{
 			cubePool = new LinkedList<GameObject>();
-			inactiveCubeCount = TOTAL_CUBES;
+			inactiveCubeCount =  tutorial ? TOTAL_CUBES / 10 : TOTAL_CUBES;
 
 			int numLoops = 0;
 			bool newBatch = true;
@@ -316,7 +316,6 @@ public class scrNodeMaster : MonoBehaviour
 					messageQueue.Dequeue();
 
 					scrResults.ReversionEdits.Add(message);
-
 					StartCoroutine(Create (message, true));
 				}
 			}
