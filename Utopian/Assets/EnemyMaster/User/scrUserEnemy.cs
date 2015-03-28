@@ -53,10 +53,10 @@ public class scrUserEnemy : scrEnemy
 		powerup.Colour = NameToColour(Name);
 		powerup.Size = 0.5f + (Mathf.Max(Name.Length, 16)) / 10.0f;
 		powerup.Speed = 220.0f / powerup.Size;
-		powerup.Wiggle = Name[0] < 80 ? Name[0] * 0.5f : 0;
+		powerup.Wiggle = Name[0] < 'M' ? Name[0] * 0.5f : 0;
 		powerup.Erratic = (Mathf.Abs(Name[Name.Length - 1] - Name[0]) % 10) / 7.0f;
 		powerup.Homing = Name[0].ToString().ToUpper()[0] < 'H';
-		powerup.Penetrative = Name[Name.Length - 1] < '9';
+		powerup.Penetrative = Name[Name.Length - 1] <= '9';
 
 		//powerup = new BulletPowerup(colour, speed, size, split, wiggle, homing, penetrative);
 
