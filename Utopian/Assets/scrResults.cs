@@ -43,7 +43,13 @@ public class scrResults : MonoBehaviour
 
 		WikiPanel.Find("Title").GetComponent<scrScrollText>().text = "Over the last " + (int)(TimeElapsed / 60) + "m" + (int)(TimeElapsed % 60) + "s:";
 		WikiPanel.Find ("TotalEdits").GetComponent<scrScrollText>().text = (RegisteredEditCount + AnonymousEditCount + BotEditCount) + " edits were made to Wikipedia articles!";
-		WikiPanel.Find ("VandalEdits").GetComponent<scrScrollText>().text = ReversionEdits.Count + " edits were reversions (vandalism shown in red)!";
+
+		if (scrMainMenu.RidiculousMode)
+			WikiPanel.Find ("VandalEdits").GetComponent<scrScrollText>().text = ReversionEdits.Count + " edits were reversions (vandalism shown in red)!";
+		else
+			WikiPanel.Find ("VandalEdits").GetComponent<scrScrollText>().text = ReversionEdits.Count + " edits were reversions of vandalism!";
+
+
 		WikiPanel.Find ("TotalUsers").GetComponent<scrScrollText>().text = Users.Count + " new users joined Wikipedia!";
 
 

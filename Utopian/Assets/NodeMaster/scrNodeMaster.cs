@@ -291,13 +291,25 @@ public class scrNodeMaster : MonoBehaviour
 //			{
 //				SpawnBoss(message);
 //			}
-			if (summary.Length == 0 || !(summary.Contains("VANDAL") || summary.Contains("SPAM") || summary.Contains("UNDID") || summary.Contains ("UNDO") || summary.Contains("REVERT") || summary.Contains("REVERSION")))
+
+			if (summary.Length != 0 && (summary.Contains("VANDAL") || summary.Contains("SPAM") || scrMainMenu.RidiculousMode && (summary.Contains("UNDID") || summary.Contains ("UNDO") || summary.Contains("REVERT") || summary.Contains("REVERSION"))))
+			{
+				// Create an infected node.
+				if (!creating)
+				{
+					messageQueue.Dequeue();
+					
+					scrResults.ReversionEdits.Add(message);
+					StartCoroutine(Create (message, true));
+				}
+			}
+			else
 			{
 				// Remove the message if it isn't infected so it's more likely infected nodes accumulate.
 				//messageQueue.Dequeue();
 
-				// If the user is not a bot and not anonymous, create the node.  An edit by a bot that is not a vandalism reversion is unlikely to contain any decent information.
-				if (message.is_bot || message.is_anon)
+				// If the user is not a bot and is anonymous, create the node.  An edit by a bot that is not a vandalism reversion is unlikely to contain any decent information.
+				if (message.is_bot || scrMainMenu.Registered && !scrMainMenu.Unregistered && message.is_anon || scrMainMenu.Unregistered && !scrMainMenu.Registered && !message.is_anon || message.change_size == 0)
 				{
 					scrGUI.Instance.AddToFeed(message.page_title, new Color(0.1f, 0.1f, 0.1f));
 					messageQueue.Dequeue();
@@ -306,17 +318,6 @@ public class scrNodeMaster : MonoBehaviour
 				{
 					messageQueue.Dequeue();
 					StartCoroutine(Create (message, false));
-				}
-			}
-			else
-			{
-				// Create an infected node.
-				if (!creating)
-				{
-					messageQueue.Dequeue();
-
-					scrResults.ReversionEdits.Add(message);
-					StartCoroutine(Create (message, true));
 				}
 			}
 		}
@@ -509,9 +510,6 @@ public class scrNodeMaster : MonoBehaviour
 	public IEnumerator Create(Message message, bool infected)
 	{
 		creating = true;
-
-		if (message.is_anon)
-			message.user = "Anonymous";
 
 		creatingMessage = message;
 

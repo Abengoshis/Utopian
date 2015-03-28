@@ -165,7 +165,7 @@ public class scrNode : MonoBehaviour
 		ChildData[0].GetComponent<TextMesh>().text = Data.page_title;
 		ChildData[1].GetComponent<TextMesh>().text = "User: " + Data.user;
 		ChildData[2].GetComponent<TextMesh>().text = "Altered: " + (Data.change_size > 0 ? ("+" + Data.change_size.ToString()) : Data.change_size.ToString()) + " Bytes";
-		ChildData[3].GetComponent<TextMesh>().text = "Edited Time: " + Data.time;
+		ChildData[3].GetComponent<TextMesh>().text = "Country: " + (Data.geo == null ? "Unknown" : data.geo.country_name);
 
 		FullyInfected = infected;
 		Infected = infected;

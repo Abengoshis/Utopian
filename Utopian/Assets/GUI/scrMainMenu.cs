@@ -4,6 +4,10 @@ using System.Collections;
 
 public class scrMainMenu : MonoBehaviour
 {
+	public static bool RidiculousMode = false;
+	public static bool Registered = false;
+	public static bool Unregistered = true;
+
 	public GameObject Core;
 
 	public Button PlayButton, TutorialButton, QuitButton;
@@ -11,6 +15,10 @@ public class scrMainMenu : MonoBehaviour
 	// Use this for initialization
 	void Start ()
 	{
+		GameObject.Find ("Canvas").transform.Find ("Toggle").GetComponent<Toggle>().isOn = RidiculousMode;
+		GameObject.Find ("Canvas").transform.Find ("Registered").GetComponent<Toggle>().isOn = Registered;
+		GameObject.Find ("Canvas").transform.Find ("Unregistered").GetComponent<Toggle>().isOn = Unregistered;
+
 		Screen.lockCursor = false;
 
 		PlayButton.transform.Find ("Text").GetComponent<scrScrollText>().Invoke("Run", 1.3f);
@@ -37,5 +45,20 @@ public class scrMainMenu : MonoBehaviour
 	public void Quit()
 	{
 		Application.Quit();
+	}
+
+	public void ToggleRidiculousMode()
+	{
+		RidiculousMode = GameObject.Find ("Canvas").transform.Find ("Toggle").GetComponent<Toggle>().isOn;
+	}
+
+	public void ToggleRegistered()
+	{
+		Registered = GameObject.Find ("Canvas").transform.Find ("Registered").GetComponent<Toggle>().isOn;
+	}
+
+	public void ToggleUnregistered()
+	{
+		Unregistered = GameObject.Find ("Canvas").transform.Find ("Unregistered").GetComponent<Toggle>().isOn;
 	}
 }

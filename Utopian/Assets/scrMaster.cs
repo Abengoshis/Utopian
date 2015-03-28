@@ -53,7 +53,7 @@ public class scrMaster : MonoBehaviour
 			Transitioning = true;
 			TransitionDuration = 10;
 			TransitionTimer = 0;
-			WaveDuration = 120;
+			WaveDuration = 180;
 			WaveTimer = 0;
 			Wave = 0;
 		}
