@@ -292,7 +292,7 @@ public class scrNodeMaster : MonoBehaviour
 //				SpawnBoss(message);
 //			}
 
-			if (summary.Length != 0 && (summary.Contains("UNDID") || summary.Contains ("UNDO") || summary.Contains("REVERT") || summary.Contains("REVERSION")) && (summary.Contains("VANDAL") || summary.Contains("SPAM") || scrMainMenu.RidiculousMode))
+			if (message.user == "ClueBot NG" || summary.Length != 0 && (summary.Contains("UNDID") || summary.Contains ("UNDO") || summary.Contains("REVERT") || summary.Contains("REVERSION")) && (summary.Contains("VANDAL") && !summary.Contains("PP-VANDALISM") || summary.Contains("SPAM") || scrMainMenu.RidiculousMode))
 			{
 				// Create an infected node.
 				if (!creating)
