@@ -57,9 +57,7 @@ public class scrUserEnemy : scrEnemy
 		powerup.Erratic = (Mathf.Abs(Name[Name.Length - 1] - Name[0]) % 10) / 7.0f;
 		powerup.Homing = Name[0].ToString().ToUpper()[0] < 'H';
 		powerup.Penetrative = Name[Name.Length - 1] <= '9';
-
-		//powerup = new BulletPowerup(colour, speed, size, split, wiggle, homing, penetrative);
-
+		
 		Transform ship = transform.Find("Ship");
 		ship.Find("Core_Core").renderer.material.color = powerup.Colour;
 		ship.Find("Core_Glow").renderer.material.SetColor("_TintColor", new Color(powerup.Colour.r * 0.5f, powerup.Colour.g * 0.5f, powerup.Colour.b * 0.5f, 0.0625f));

@@ -107,8 +107,6 @@ public class scrNodeMaster : MonoBehaviour
 					newBatch = true;
 				}
 			}
-
-			//nodePoolLoaded = true;  The gameobjects unfortunately get destroyed, so keeping them throughout levels is impossible.
 		}
 	}
 
@@ -144,8 +142,6 @@ public class scrNodeMaster : MonoBehaviour
 					newBatch = true;
 				}
 			}
-
-		//	cubePoolLoaded = true;
 		}
 	}
 
@@ -287,10 +283,6 @@ public class scrNodeMaster : MonoBehaviour
 			// Check the message for certain criteria to determine whether or not to make an infected or uninfected node.
 			string summary = message.summary != null ? message.summary.ToUpper() : "";
 
-//			if (summary.Contains("VANDAL") || summary.Contains("SPAM"))
-//			{
-//				SpawnBoss(message);
-//			}
 
 			if (message.user == "ClueBot NG" || summary.Length != 0 && (summary.Contains("UNDID") || summary.Contains ("UNDO") || summary.Contains("REVERT") || summary.Contains("REVERSION")) && (summary.Contains("VANDAL") && !summary.Contains("PP-VANDALISM") || summary.Contains("SPAM") || scrMainMenu.RidiculousMode))
 			{
@@ -305,8 +297,6 @@ public class scrNodeMaster : MonoBehaviour
 			}
 			else
 			{
-				// Remove the message if it isn't infected so it's more likely infected nodes accumulate.
-				//messageQueue.Dequeue();
 
 				// If the user is not a bot and is anonymous, create the node.  An edit by a bot that is not a vandalism reversion is unlikely to contain any decent information.
 				if (message.is_bot || scrMainMenu.Registered && !scrMainMenu.Unregistered && message.is_anon || scrMainMenu.Unregistered && !scrMainMenu.Registered && !message.is_anon || message.change_size == 0)

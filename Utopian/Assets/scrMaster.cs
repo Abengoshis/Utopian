@@ -153,10 +153,6 @@ public class scrMaster : MonoBehaviour
 
 				waveSlider.value = WaveTimer / WaveDuration;
 			}
-
-
-
-
 		}
 	}
 

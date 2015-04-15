@@ -43,7 +43,7 @@ public class scrAICore : MonoBehaviour
 			if (rotation < 0)
 				rotation += 360;
 
-			// Has rotated to the right direction? (Do this with smoothstep and work out timer in future). In fact do all of this with a timer you dumpass!
+			// Has rotated to the right direction?
 			if (Mathf.Abs (Mathf.DeltaAngle(transform.eulerAngles.z, rotation)) < 2)
 			{
 				transform.eulerAngles = new Vector3(0, 0, rotation);

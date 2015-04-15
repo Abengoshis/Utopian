@@ -5,10 +5,8 @@ using System.Collections;
 using System.Collections.Generic;
 
 
-// This class could be made much better. Future me, start by removing all the .Find(...)'s.
 public class scrResults : MonoBehaviour
 {
-	// Quick 'n' dirty global variables because of time pressure.
 	public static float TimeElapsed = 0;
 
 	public static int RegisteredEditCount = 0;
@@ -16,7 +14,6 @@ public class scrResults : MonoBehaviour
 	public static int BotEditCount = 0;
 	public static List<Message> ReversionEdits = new List<Message>();
 
-	public static string Killer = "";	// User that killed the player.
 	public static List<string> Users = new List<string>();	// Get the url with http://www.wikipedia.org/wiki/User:" + user + "\" target=\"_blank".
 
 	public static int Score = 0;
@@ -30,7 +27,6 @@ public class scrResults : MonoBehaviour
 		RegisteredEditCount = 0;
 		AnonymousEditCount = 0;
 		BotEditCount = 0;
-		Killer = "";
 		Users.Clear();
 		ReversionEdits.Clear ();
 	}

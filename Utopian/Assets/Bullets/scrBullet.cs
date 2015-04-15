@@ -20,7 +20,7 @@ public class scrBullet : MonoBehaviour
 	public Vector2 Direction;
 	public float Speed;
 	public float Damage;
-	public float Wiggle;	// These things are hacky ways to implement powerups. I'll remake the entire game after research as I already have ideas for improving efficiency and gameplay.
+	public float Wiggle;
 	public float Erratic;
 	public bool Penetrative;
 

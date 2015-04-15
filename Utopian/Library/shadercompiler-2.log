@@ -1,15 +1,11 @@
 Base path: C:/Program Files/Unity/Editor/Data
-Pipe name: \\.\pipe\UnityShaderCompiler-2-5060
+Pipe name: \\.\pipe\UnityShaderCompiler-2-1536
 Cmd: getPlatforms
 Cmd: compileSnippet
   error: 2 plat 0 at (89): operands to "%" must be integral
   error: 2 plat 0 at (97): operands to "%" must be integral
   error: 2 plat 0 at (105): operands to "%" must be integral
   api=0 type=0 insize=2379 outsize=0 kw= ok=0
-Cmd: compileSnippet
-  error: 2 plat 8 at (1): Compiled shader code uses too many instruction slots (109). Max. allowed by the target (ps_2_0) is 96.
-  error: 2 plat 8 at (109): Compiled shader code uses too many arithmetic instruction slots (108). Max. allowed by the target (ps_2_0) is 64. Consider increasing optimization level to reduce instruction count.
-  api=8 type=1 insize=2379 outsize=0 kw= ok=0
 Unhandled exception: Readfile from pipe failed. GLE=The pipe has been ended.
 
 

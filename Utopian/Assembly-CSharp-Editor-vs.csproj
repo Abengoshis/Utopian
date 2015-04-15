@@ -5,11 +5,11 @@
 	<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 	<ProductVersion>10.0.20506</ProductVersion>
 	<SchemaVersion>2.0</SchemaVersion>
-	<ProjectGuid>{B1023BD3-53DF-8078-BDC3-A999715B6132}</ProjectGuid>
+	<ProjectGuid>{6D90073B-B510-B79D-1798-A32056AF8662}</ProjectGuid>
 	<OutputType>Library</OutputType>
 	<AppDesignerFolder>Properties</AppDesignerFolder>
 	<RootNamespace></RootNamespace>
-	<AssemblyName>Assembly-CSharp</AssemblyName>
+	<AssemblyName>Assembly-CSharp-Editor</AssemblyName>
 	<TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
 	<FileAlignment>512</FileAlignment>
 	<BaseDirectory>Assets</BaseDirectory>
@@ -46,37 +46,15 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Bullets\scrBullet.cs" />
-     <Compile Include="Assets\Bullets\scrBulletPool.cs" />
-     <Compile Include="Assets\Bullets\scrPowerup.cs" />
-     <Compile Include="Assets\Effects\Explosions\scrExplosion.cs" />
-     <Compile Include="Assets\EnemyMaster\NodeBoss\scrBoss.cs" />
-     <Compile Include="Assets\EnemyMaster\Snake\scrSnakeEnemy.cs" />
-     <Compile Include="Assets\EnemyMaster\User\scrUserEnemy.cs" />
-     <Compile Include="Assets\EnemyMaster\WordEnemy\scrWordEnemy.cs" />
-     <Compile Include="Assets\EnemyMaster\scrEnemy.cs" />
-     <Compile Include="Assets\EnemyMaster\scrEnemyMaster.cs" />
-     <Compile Include="Assets\GUI\scrGUI.cs" />
-     <Compile Include="Assets\GUI\scrMainMenu.cs" />
-     <Compile Include="Assets\GUI\scrScrollText.cs" />
-     <Compile Include="Assets\NodeMaster\Cube\scrCube.cs" />
-     <Compile Include="Assets\NodeMaster\Node\scrNode.cs" />
-     <Compile Include="Assets\NodeMaster\scrNodeMaster.cs" />
-     <Compile Include="Assets\Player\scrPlayer.cs" />
-     <Compile Include="Assets\Wikiworld\scrAICore.cs" />
-     <Compile Include="Assets\scrCamera.cs" />
-     <Compile Include="Assets\scrFadeTransition.cs" />
-     <Compile Include="Assets\scrMaster.cs" />
-     <Compile Include="Assets\scrMusicMaster.cs" />
-     <Compile Include="Assets\scrPathfinder.cs" />
-     <Compile Include="Assets\scrResults.cs" />
-     <Compile Include="Assets\scrTutorial.cs" />
-     <Compile Include="Assets\scrWebSocketClient.cs" />
+     <Compile Include="Assets\Editor\CountLines.cs" />
      <None Include="Assets\NodeMaster\Cube\shdCube.shader" />
      <None Include="Assets\NodeMaster\shdGrid.shader" />
      <None Include="Assets\GUI\shdMap.shader" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/4.6.1/UnityEngine.UI.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.UI">
+ <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/4.6.1/Editor/UnityEditor.UI.dll</HintPath>
  </Reference>
  <Reference Include="Newtonsoft.Json">
  <HintPath>C:/Users/Abengoshis/Documents/GitHub/Utopian/Utopian/Assets/Plugins/Newtonsoft.Json.dll</HintPath>
@@ -84,6 +62,13 @@
  <Reference Include="websocket-sharp">
  <HintPath>C:/Users/Abengoshis/Documents/GitHub/Utopian/Utopian/Assets/Plugins/websocket-sharp.dll</HintPath>
  </Reference>
+ <Reference Include="UnityEditor.Graphs">
+ <HintPath>C:/Program Files/Unity/Editor/Data/Managed/UnityEditor.Graphs.dll</HintPath>
+ </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="Assembly-CSharp-vs.csproj">
+      <Project>{B1023BD3-53DF-8078-BDC3-A999715B6132}</Project>      <Name>Assembly-CSharp-vs</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

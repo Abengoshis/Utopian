@@ -200,11 +200,6 @@ public class scrPlayer : MonoBehaviour
 		if (bombTimer < bombDelay)
 		{
 			bombTimer += Time.deltaTime;
-			if (bombTimer >= bombDelay)
-			{
-				// Show bomb available graphic.
-				// Play bomb available sound.
-			}
 		}
 		else
 		{
@@ -218,8 +213,6 @@ public class scrPlayer : MonoBehaviour
 	IEnumerator DeployBomb(Vector3 position)
 	{
 		bombTimer = 0.0f;
-
-		// Hide bomb available graphic.
 
 		Instantiate(BombExplosionPrefab, transform.position, Quaternion.identity);
 
@@ -244,9 +237,5 @@ public class scrPlayer : MonoBehaviour
 			damageTimer += bullet.Damage;
 		}
 	}
-
-	void OnPostRender()
-	{
-		// Draw a line from the ship to the cursor?
-	}
+	
 }

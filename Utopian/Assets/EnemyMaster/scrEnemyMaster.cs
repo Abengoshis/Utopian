@@ -6,8 +6,6 @@ public class scrEnemyMaster : MonoBehaviour
 {
 	public static scrEnemyMaster Instance { get; private set; }
 	public static scrBulletPool BulletPool { get; private set; }
-
-	public readonly List<string> Connectives = new List<string>(new string[] {"SO", "AS", "OR", "AND", "BUT", "NOR", "FOR", "YET", "ALSO", "SINCE", "ALTHOUGH", "WHEREAS", "BECAUSE" });
 	
 	public GameObject UserEnemyPrefab;
 	public GameObject SnakeEnemyPrefab;

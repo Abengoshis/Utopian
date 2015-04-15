@@ -134,11 +134,5 @@ public class scrSnakeEnemy : scrEnemy
 
 		base.Update();
 	}
-
-	void OnGUI()
-	{
-		//for (int i = 0; i < Segments.Length; ++i)
-		//	if (Segments[i].enabled)
-				//scrGUI.Instance.DrawOutlinedText (Word[i].ToString(), Camera.main.WorldToViewportPoint(Segments[i].transform.position), Color.white, Color.black, 3);
-	}
+	
 }

@@ -77,10 +77,6 @@ public class scrBoss : scrEnemy
 					link.SetColors(Color.Lerp (Color.clear, Color.red, Mathf.Abs (orbitTimer) / 0.05f), Color.Lerp (Color.clear, Color.red, Mathf.Abs (orbitTimer) / 0.2f));
 				}
 			}
-			else
-			{
-				// Fade out link.
-			}
 			
 		}
 		else

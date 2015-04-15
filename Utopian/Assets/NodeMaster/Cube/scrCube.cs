@@ -11,7 +11,6 @@ public class scrCube : MonoBehaviour
 		INFECTED = 2
 	}
 
-
 	public LinkedListNode<GameObject> Cube { get; private set; }
 	public DataState StatePrev { get; private set; }
 	public DataState State { get; private set; }
@@ -36,7 +35,7 @@ public class scrCube : MonoBehaviour
 		if (Parent != null)
 		{
 			++Parent.InfectedCubeCount;
-			Parent.Infect (0);			// Really hacky, will need to reprogram.
+			Parent.Infect (0);
 		}
 	}
 	
@@ -49,7 +48,7 @@ public class scrCube : MonoBehaviour
 		if (Parent != null)
 		{
 			++Parent.InfectedCubeCount;
-			Parent.Infect (0);			// Really hacky, will need to reprogram.
+			Parent.Infect (0);
 		}
 	}
 

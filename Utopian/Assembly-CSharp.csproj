@@ -63,7 +63,6 @@
      <Compile Include="Assets\NodeMaster\Node\scrNode.cs" />
      <Compile Include="Assets\NodeMaster\scrNodeMaster.cs" />
      <Compile Include="Assets\Player\scrPlayer.cs" />
-     <Compile Include="Assets\Player\scrPowerupManager.cs" />
      <Compile Include="Assets\Wikiworld\scrAICore.cs" />
      <Compile Include="Assets\scrCamera.cs" />
      <Compile Include="Assets\scrFadeTransition.cs" />

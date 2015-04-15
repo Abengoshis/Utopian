@@ -19,8 +19,8 @@ public class scrTutorial : MonoBehaviour
 		"INFECTED clusters form when an edit is a REVERSION. These infect nearby clusters over time and release infected ENEMIES based on the words in the edit.",
 		"The time it took the reverted edit to be identified and reverted manifests itself as a separate enemy which will try to upload itself to the AI directly.",
 		"OBJECTIVES - USERS",
-		"Whenever a USER registers to Wikipedia, they appear as a USER ENEMY somewhere on the grid.",
-		"USER ENEMIES have unique weapons determined by the username of the USER. Destroying a USER ENEMY grants the player limited use of its weapon.",
+		"Whenever a USER registers to Wikipedia, they appear as a HACKER somewhere on the grid.",
+		"HACKERS have unique weapons determined by the username of the USER. Destroying a HACKER grants the player limited use of its weapon.",
 		"The goal of the game is to increase the AI's INTELLIGENCE while keeping its CORRUPTION as low as possible.",
 		"GOOD LUCK!"
 	};

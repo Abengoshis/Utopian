@@ -32,10 +32,6 @@ public class scrNode : MonoBehaviour
 
 				// Set the position with the i, j coordinates.
 				positions.Add(new Vector3(x, y) * 2 - (Vector3)Vector2.one * (shell - 1));
-
-
-				// Push the position out from the radius to give each cube separation from its neighbours.
-				//positions[cube] += positions[cube] * 0.5f;
 			
 				++cube;
 			}
@@ -83,7 +79,7 @@ public class scrNode : MonoBehaviour
 	public bool Uploading { get; private set; }
 	float infectionPulseDelay = 5.0f;
 	float infectionPulseTimer = 0.0f;
-	public int InfectedCubeCount = 0;	// Echh...if only friend classes existed in C#. Almost all of these public variables are due to rushing.
+	public int InfectedCubeCount = 0;
 
 	GameObject[] linkedNodes = new GameObject[LINKS_MAX];
 	LineRenderer[] links = new LineRenderer[LINKS_MAX];
@@ -92,7 +88,7 @@ public class scrNode : MonoBehaviour
 	public int CurrentLinks { get; private set; }
 
 	public LinkedListNode<GameObject> Node { get; private set; }
-	public LinkedListNode<GameObject>[] Cubes { get; private set; }	// All cubes of this node.							// if only there was a way to make node a friend class of the node master, then this would be safer. This is all for speed so when the node master destroys the node and wants to add the cube to the cube pool again it doesnt have to search. 
+	public LinkedListNode<GameObject>[] Cubes { get; private set; }	// All cubes of this node.
 	List<Vector3[]>.Enumerator cubePositionEnumerator;	// Used when constructing the node to grab the cube positions without needing to iterate the list.
 	int cubePositionIndex = 0;	// Used when constructing the node to grab cubes from the cube positions.
 	int totalCubeCount = 0;
@@ -110,8 +106,6 @@ public class scrNode : MonoBehaviour
 
 	bool ready = false;
 	public bool VisibleToPlayer { get; private set; }
-
-//	public List<scrEnemy> Enemies { get; private set; }
 
 	public GameObject ChildCore { get; private set; }
 	public GameObject ChildInfo { get; private set; }
@@ -142,8 +136,6 @@ public class scrNode : MonoBehaviour
 		}
 		expandTimer = 0;
 
-		//transform.rotation = Random.rotation;
-		//transform.localScale = Vector3.zero;
 
 		// Get an enumerator to the list item containing the positions this node will use when being built.
 		cubePositionEnumerator = CubePositions.GetEnumerator();
@@ -169,10 +161,6 @@ public class scrNode : MonoBehaviour
 
 		FullyInfected = infected;
 		Infected = infected;
-
-		// Begin reading the text immediately.
-		//StartCoroutine(Parse ());
-
 
 		// If fully infected, all cubes are infected.
 		if (FullyInfected)
@@ -307,9 +295,6 @@ public class scrNode : MonoBehaviour
 		{
 			FullyInfected = true;
 			
-			// Read the text.
-			//StartCoroutine(Parse ());
-			
 			// Set the infected materials.
 			ChildCore.renderer.material = scrNodeMaster.Instance.MatCoreInfected;
 			
@@ -333,10 +318,6 @@ public class scrNode : MonoBehaviour
 	{
 		for (int i = 0; i < CurrentLinks; ++i)
 		{
-			// Get the chess distance to the nodes. (REDUNDANT NOW CAN ONLY INFECT ADJACENT NODES!)
-			//int chess = Mathf.Max ((int)Mathf.Abs ((linkedNodes[i].transform.position.x - transform.position.x) / scrNodeMaster.CELL_SIZE),
-			                   //    (int)Mathf.Abs (linkedNodes[i].transform.position.y - transform.position.y) / scrNodeMaster.CELL_SIZE);
-
 			linkedNodes[i].GetComponent<scrNode>().Infect(Mathf.CeilToInt((InfectedCubeCount * 0.05f)));
 			links[i].SetColors(scrNodeMaster.ColCoreInfected,
 			                   Color.Lerp(linkedNodes[i].GetComponent<scrNode>().Blocked ? scrNodeMaster.ColCoreBlocked : scrNodeMaster.ColCoreUninfected,
@@ -378,16 +359,6 @@ public class scrNode : MonoBehaviour
 			// Spawn enemies once the words have been parsed.
 			if (words.Length != 0)
 			{
-				// Choose which enemy to make.
-
-				// First, choose if a random enemy will be made or a specific one. Specific enemies depend on word length.
-
-				// Choose an enemy based on word type.
-				if (scrEnemyMaster.Instance.Connectives.Contains(words[wordIndex])) // Connective enemy.
-				{
-
-				}
-
 				// Choose an enemy based on word length.
 				if (words[wordIndex].Length > 4) // 6+ letter enemy.
 				{
@@ -466,9 +437,6 @@ public class scrNode : MonoBehaviour
 			expandTimer += Time.deltaTime;
 			if(expandTimer > expandDuration)
 				expandTimer = expandDuration;
-
-			// Expand core.
-			//transform.localScale = Vector3.Lerp (Vector3.zero, Vector3.one, expandTimer / expandDuration);
 
 			// Expand out cubes.
 			for (int i = 0; i < Cubes.Length; ++i)
@@ -598,13 +566,4 @@ public class scrNode : MonoBehaviour
 		scrNodeMaster.SelectNewNode = true;
 		Uploading = false;
 	}
-
-	/*void OnGUI()
-	{
-		string text = Data.time + System.Environment.NewLine + "PAGE: " + Data.page_title + System.Environment.NewLine + "USER: " + Data.user +
-					  System.Environment.NewLine + "EDIT: " + Data.change_size.ToString() + " bytes";
-
-		scrGUI.Instance.DrawOutlinedText(text, Camera.main.WorldToViewportPoint(transform.position), Color.white, Color.black, 1);
-
-	}*/
 }
